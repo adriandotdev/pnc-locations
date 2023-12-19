@@ -83,7 +83,7 @@ const logger = createLogger({
 	exitOnError: false,
 });
 
-logger.silent = true; // CHANGE THIS to 'true' when testing
+logger.silent = false; // CHANGE THIS to 'true' when testing
 
 logger.stream = {
 	write: function (message, encoding) {

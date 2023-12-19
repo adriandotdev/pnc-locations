@@ -11,7 +11,7 @@ config.encryption = {};
 config.sms = {};
 
 /* app settings */
-config.server.port = 4002; // Change this port depending on your project.
+config.server.port = 4004; // Change this port depending on your project.
 config.server.env = "dev";
 
 /* MySQL Database Setup */
