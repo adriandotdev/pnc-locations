@@ -1,6 +1,19 @@
 const mysql = require("../database/mysql");
 
 module.exports = class NearbyMerchantsRepository {
+	/**
+	 * A method that retrieves all of nearby merchants based on
+	 * user's location by providing the latitude, and longtitude.
+	 *
+	 * @param {*} lat
+	 * - The latitude of location.
+	 * @param {*} lng
+	 * - The longtitude of location.
+	 * @returns
+	 * - List of merchants.
+	 *
+	 * @NOTE: The query is using Haversine Formula.
+	 */
 	GetNearbyMerchants(lat, lng) {
 		return new Promise((resolve, reject) => {
 			mysql.getConnection((err, connection) => {
@@ -40,10 +53,19 @@ module.exports = class NearbyMerchantsRepository {
 		});
 	}
 
+	/**
+	 * A method to retrieve all the chargers/charger types.
+	 * @param {*} merchant_id
+	 * - Merchant ID where the charger belongs to.
+	 * @param {*} connection
+	 * - Connection object to be reused during the query.
+	 * @returns
+	 * - List of chargers/charger types
+	 */
 	GetEVChargerTypes(merchant_id, connection) {
 		return new Promise((resolve, reject) => {
 			connection.query(
-				`SELECT DISTINCT(evc.id), evc.status, evc.type AS plug_type, evc.model, evc.vendor, evc.serial_number, evc.box_serial_number, evc.firmware_version, evc.meter_type AS charger_type, setting.kwh AS power 
+				`SELECT DISTINCT(evc.id) AS ev_charger_id, evc.status AS ev_charger_status, evc.type AS plug_type, evc.model, evc.vendor, evc.serial_number, evc.box_serial_number, evc.firmware_version, evc.meter_type AS charger_type, setting.kwh AS power 
                 FROM ev_chargers AS evc 
                 INNER JOIN ev_charger_timeslots AS evct
                 ON evc.id = evct.ev_charger_id

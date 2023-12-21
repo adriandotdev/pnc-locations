@@ -1,4 +1,11 @@
+const axios = require("axios");
+
+// Repository
 const NearbyMerchantsRepository = require("../repository/NearbyMerchantsRepository");
+
+// Config
+const config = require("../config/config");
+const winston = require("../config/winston");
 
 module.exports = class NearbyMerchantsService {
 	constructor() {
