@@ -33,9 +33,31 @@ module.exports = class NearbyMerchantsService {
 					`https://maps.googleapis.com/maps/api/geocode/json?latlng=${merchant.lat},${merchant.lng}&key=${config.googleAuth.GEO_API_KEY}`
 				);
 
+				// Extract the city from address components from Google response.
+				const city = addressDetails.data.results[0].address_components.find(
+					(addr) =>
+						addr.types[0] === "locality" || addr.types[2] === "political"
+				);
+
+				// Extract the region from address components from Google response.
+				const region = addressDetails.data.results[0].address_components.find(
+					(addr) =>
+						addr.types[0] === "administrative_area_level_1" ||
+						addr.types[2] === "political"
+				);
+
+				// Extract the country from the address components from Google response.
+				const country = addressDetails.data.results[0].address_components.find(
+					(addr) => addr.types[0] === "country" || addr.types[2] === "political"
+				);
+
 				return {
 					...merchant,
 					formatted_address: addressDetails.data.results[0].formatted_address,
+					city: city.short_name,
+					region: region.short_name,
+					country: country.long_name,
+					country_code: country.short_name,
 					stations,
 					amenities,
 				};
