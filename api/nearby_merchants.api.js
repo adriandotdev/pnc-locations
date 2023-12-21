@@ -2,6 +2,7 @@ const NearbyMerchantsService = require("../services/NearbyMerchantsService");
 const { validationResult, body } = require("express-validator");
 const winston = require("../config/winston");
 const { BasicTokenVerifier } = require("../middlewares/TokenMiddleware");
+const { HttpUnprocessableEntity } = require("../utils/HttpError");
 
 module.exports = (app) => {
 	const service = new NearbyMerchantsService();
@@ -48,6 +49,8 @@ module.exports = (app) => {
 				const result = await service.GetNearbyMerchants(lat, lng);
 
 				winston.info({ NEARBY_MERCHANT_REQUEST: "SUCCESS" });
+				winston.info({ NEARBY_MERCHANTS_API_RESPONSE_DATA: result });
+
 				return res.status(200).json({ status: 200, data: result });
 			} catch (err) {
 				if (err !== null) {
