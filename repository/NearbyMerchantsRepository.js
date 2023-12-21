@@ -60,4 +60,29 @@ module.exports = class NearbyMerchantsRepository {
 			);
 		});
 	}
+
+	/**
+	 * A method to retrieve all merchant's amenities.
+	 * @param {*} merchant_id
+	 * - Merchant ID where the amenities belong to.
+	 * @param {*} connection
+	 * - Connection object to be reused during the query.
+	 * @returns
+	 * - List of amenities.
+	 */
+	GetAmenities(merchant_id, connection) {
+		return new Promise((resolve, reject) => {
+			connection.query(
+				`SELECT id, user_merchant_id, name FROM user_merchant_amenities WHERE user_merchant_id = ?`,
+				[merchant_id],
+				(err, result) => {
+					if (err) {
+						reject(err);
+					}
+
+					resolve(result);
+				}
+			);
+		});
+	}
 };
