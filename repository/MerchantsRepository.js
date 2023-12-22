@@ -54,6 +54,46 @@ module.exports = class MerchantsRepository {
 	}
 
 	/**
+	 * Reason why there are still lat, and lng because we need how far the merchant from the user's location.
+	 */
+	GetFilteredMerchants(location, filter) {
+		return new Promise((resolve, reject) => {
+			mysql.getConnection((err, connection) => {
+				if (err) {
+					connection.release();
+					reject(err);
+				}
+
+				mysql.query(
+					`SELECT
+					DISTINCT (user_merchants.id) AS merchant_id,
+					merchant_name AS merchant,
+					building_name,
+					address_lat AS lat,
+					address_lng AS lng,
+					ROUND(6371 * 2 * ASIN(SQRT(
+					  POWER(SIN((${location.lat} - ABS(address_lat)) * PI() / 180 / 2), 2) +
+					  COS(${location.lat} * PI() / 180) * COS(ABS(address_lat) * PI() / 180) *
+					  POWER(SIN((${location.lng} - address_lng) * PI() / 180 / 2), 2)
+					)), 1) AS distance
+					FROM
+					user_merchants
+					INNER JOIN ev_chargers
+					ON user_merchants.id = ev_chargers.user_merchant_id
+					WHERE region = '${filter.region}' AND city = '${filter.city}' AND type IN (${filter.types}) AND meter_type IN (${filter.meter_types})`,
+					(err, result) => {
+						if (err) {
+							reject(err);
+						}
+
+						resolve({ result, connection });
+					}
+				);
+			});
+		});
+	}
+
+	/**
 	 * A method to retrieve all the chargers/charger types.
 	 * @param {*} merchant_id
 	 * - Merchant ID where the charger belongs to.
