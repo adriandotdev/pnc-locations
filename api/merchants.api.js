@@ -1,11 +1,11 @@
-const NearbyMerchantsService = require("../services/NearbyMerchantsService");
+const MerchantsService = require("../services/MerchantsService");
 const { validationResult, body } = require("express-validator");
 const winston = require("../config/winston");
 const { BasicTokenVerifier } = require("../middlewares/TokenMiddleware");
 const { HttpUnprocessableEntity } = require("../utils/HttpError");
 
 module.exports = (app) => {
-	const service = new NearbyMerchantsService();
+	const service = new MerchantsService();
 
 	/**
 	 * This function will be used by the express-validator for input validation,

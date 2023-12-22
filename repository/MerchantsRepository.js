@@ -1,6 +1,6 @@
 const mysql = require("../database/mysql");
 
-module.exports = class NearbyMerchantsRepository {
+module.exports = class MerchantsRepository {
 	/**
 	 * A method that retrieves all of nearby merchants based on
 	 * user's location by providing the latitude, and longtitude.
