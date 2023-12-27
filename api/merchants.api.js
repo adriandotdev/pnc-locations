@@ -24,6 +24,7 @@ module.exports = (app) => {
 		}
 	}
 
+	/** This API is for the  */
 	app.get(
 		"/api/v1/nearby_merchants",
 		[
@@ -69,7 +70,40 @@ module.exports = (app) => {
 
 	app.get(
 		"/api/v1/filter-merchants",
-		[BasicTokenVerifier],
+		[
+			BasicTokenVerifier,
+			body("location")
+				.notEmpty()
+				.withMessage("Missing required property: location"),
+			body("location.lat")
+				.if(body("location").exists())
+				.notEmpty()
+				.withMessage("Missing required property: lat (location latitude)")
+				.isDecimal(),
+			body("location.lng")
+				.if(body("location").exists())
+				.notEmpty()
+				.withMessage("Missing required property: lng (location longtitude)"),
+			body("filter")
+				.notEmpty()
+				.withMessage("Missing required property: filter"),
+			body("filter.city")
+				.if(body("filter").exists())
+				.notEmpty()
+				.withMessage("Missing required property: city"),
+			body("filter.region")
+				.if(body("filter").exists())
+				.notEmpty()
+				.withMessage("Missing required property: region"),
+			body("filter.types")
+				.if(body("filter").exists())
+				.notEmpty()
+				.withMessage("Missing required property: types"),
+			body("filter.meter_types")
+				.if(body("filter").exists())
+				.notEmpty()
+				.withMessage("Missing required property: meter_types"),
+		],
 		async (req, res) => {
 			const { location, filter } = req.body;
 
@@ -77,6 +111,8 @@ module.exports = (app) => {
 			winston.info({ RECEIVED_DATA: { location, filter } });
 
 			try {
+				validate(req, res);
+
 				const response = await service.GetFilteredMerchants(location, filter);
 
 				winston.info({ FILTER_MERCHANTS: "SUCCESS" });
