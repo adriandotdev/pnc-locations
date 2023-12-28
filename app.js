@@ -24,5 +24,9 @@ app.use(morgan("combined", { stream: winston.stream }));
 app.use(cookieParser());
 
 require("./api/merchants.api")(app);
+require("./api/favorite_merchants.api")(app);
+app.use("*", (_req, res, _next) => {
+	return res.status(404).json({ status: 404, data: [], message: "Not Found" });
+});
 
 module.exports = app;
