@@ -52,10 +52,7 @@ module.exports = (app) => {
 						[]
 					);
 				}
-				const response = await service.AddMerchantToFavorites(
-					+req.id,
-					user_merchant_id
-				);
+				await service.AddMerchantToFavorites(+req.id, user_merchant_id);
 
 				winston.info({
 					FAVORITE_MERCHANT_RESPONSE: {
@@ -78,6 +75,21 @@ module.exports = (app) => {
 				winston.error({ NEARBY_MERCHANTS_ERROR: "Internal Server Error" });
 				return res.status(500).json({ status: 500, data: [] });
 			}
+		}
+	);
+
+	app.get(
+		"/api/v1/merchants/favorites",
+		[AccessTokenVerifier],
+		async (req, res) => {
+			const { lat, lng, user_id } = req.body;
+
+			const response = await service.GetFavoriteMerchants({
+				user_id,
+				location: { lat, lng },
+			});
+
+			return res.json(response);
 		}
 	);
 };
