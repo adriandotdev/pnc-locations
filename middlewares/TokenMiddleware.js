@@ -3,8 +3,11 @@ const JsonWebToken = require("../utils/JsonWebToken");
 const config = require("../config/config");
 const { HttpUnauthorized } = require("../utils/HttpError");
 const winston = require("../config/winston");
+const AuthorizationRepository = require("../repository/AuthorizationRepository");
 
-const AccessTokenVerifier = (req, res, next) => {
+const authorizationRepository = new AuthorizationRepository();
+
+const AccessTokenVerifier = async (req, res, next) => {
 	winston.info("Access Token Verifier Middleware");
 
 	try {
@@ -21,7 +24,20 @@ const AccessTokenVerifier = (req, res, next) => {
 		req.role_id = result.data.role_id;
 		req.access_token = accessToken;
 
+		const response = await authorizationRepository.GetAccessToken(
+			result.data.username
+		);
+
+		const accessTokenFromDB = response.result[0].access_token;
+
+		if (accessToken !== accessTokenFromDB) {
+			response.connection.release();
+			throw new HttpUnauthorized("Invalid Token", []);
+		}
+
 		winston.info("Access Token Verifier Middleware: SUCCESS");
+
+		response.connection.release();
 		next();
 	} catch (err) {
 		if (err instanceof jwt.JsonWebTokenError) {
