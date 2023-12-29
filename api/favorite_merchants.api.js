@@ -37,7 +37,7 @@ module.exports = (app) => {
 		[AccessTokenVerifier],
 		async (req, res) => {
 			winston.info({
-				FAVORITE_MERCHANT_REQUEST: {
+				FAVORITE_MERCHANT_API_REQUEST: {
 					user_id: req.id,
 					user_merchant_id: req.params.user_merchant_id,
 				},
@@ -46,7 +46,9 @@ module.exports = (app) => {
 				const { user_merchant_id } = req.params;
 
 				if (user_merchant_id === null || user_merchant_id === undefined) {
-					winston.error({ ERROR: "Missing user_merchant_id" });
+					winston.error({
+						FAVORITE_MERCHANT_API_ERROR: "Missing user_merchant_id",
+					});
 					throw new HttpUnprocessableEntity(
 						"Please provide a user_merchant_id",
 						[]
@@ -55,7 +57,7 @@ module.exports = (app) => {
 				await service.AddMerchantToFavorites(+req.id, user_merchant_id);
 
 				winston.info({
-					FAVORITE_MERCHANT_RESPONSE: {
+					FAVORITE_MERCHANT_API_RESPONSE: {
 						message: "SUCCESS",
 						user_id: req.id,
 						user_merchant_id,
@@ -65,14 +67,14 @@ module.exports = (app) => {
 				return res.status(200).json({ status: 200, data: [] });
 			} catch (err) {
 				if (err !== null) {
-					winston.error({ FAVORITE_MERCHANT_ERROR: err });
+					winston.error({ FAVORITE_MERCHANT_API_ERROR: err });
 					winston.error(err.data);
 					return res
 						.status(err.status)
 						.json({ status: err.status, data: err.data, message: err.message });
 				}
 
-				winston.error({ NEARBY_MERCHANTS_ERROR: "Internal Server Error" });
+				winston.error({ NEARBY_MERCHANTS_API_ERROR: "Internal Server Error" });
 				return res.status(500).json({ status: 500, data: [] });
 			}
 		}
@@ -84,12 +86,34 @@ module.exports = (app) => {
 		async (req, res) => {
 			const { lat, lng, user_id } = req.body;
 
-			const response = await service.GetFavoriteMerchants({
-				user_id,
-				location: { lat, lng },
-			});
+			winston.info({ FAVORITE_MERCHANTS_API_REQUEST: { lat, lng, user_id } });
+			try {
+				const response = await service.GetFavoriteMerchants({
+					user_id,
+					location: { lat, lng },
+				});
 
-			return res.json(response);
+				winston.info({
+					FAVORITE_MERCHANTS_API_RESPONSE: {
+						status: 200,
+					},
+				});
+
+				return res.status(200).json({ status: 200, data: response });
+			} catch (err) {
+				if (err !== null) {
+					winston.error({ FAVORITE_MERCHANTS_API_ERROR: err });
+					winston.error(err.data);
+					return res
+						.status(err.status)
+						.json({ status: err.status, data: err.data, message: err.message });
+				}
+
+				winston.error({
+					FAVORITE_MERCHANTS_API_ERROR: "Internal Server Error",
+				});
+				return res.status(500).json({ status: 500, data: [] });
+			}
 		}
 	);
 };
