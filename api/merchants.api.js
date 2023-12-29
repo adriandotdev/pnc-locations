@@ -29,8 +29,16 @@ module.exports = (app) => {
 		"/api/v1/nearby_merchants",
 		[
 			BasicTokenVerifier,
-			body("lat").notEmpty().withMessage("Please provide your latitude"),
-			body("lng").notEmpty().withMessage("Please provide your longtitude"),
+			body("lat")
+				.notEmpty()
+				.withMessage("Please provide your latitude")
+				.custom((value) => typeof value === "number")
+				.withMessage("Latitude must be in integer type."),
+			body("lng")
+				.notEmpty()
+				.withMessage("Please provide your longtitude")
+				.custom((value) => typeof value === "number")
+				.withMessage("Longitude must be in integer type."),
 		],
 		async (req, res) => {
 			const { lat, lng } = req.body;
