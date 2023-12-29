@@ -94,11 +94,15 @@ module.exports = (app) => {
 			body("filter.types")
 				.if(body("filter").exists())
 				.notEmpty()
-				.withMessage("Missing required property: types"),
+				.withMessage("Missing required property: types")
+				.custom((value) => value.length > 0)
+				.withMessage("Please provide atleast one (1) charger type"),
 			body("filter.meter_types")
 				.if(body("filter").exists())
 				.notEmpty()
-				.withMessage("Missing required property: meter_types"),
+				.withMessage("Missing required property: meter_types")
+				.custom((value) => value.length > 0)
+				.withMessage("Please provide atleast one (1) meter type"),
 		],
 		async (req, res) => {
 			const { location, filter } = req.body;
