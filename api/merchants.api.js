@@ -33,12 +33,10 @@ module.exports = (app) => {
 			body("lng").notEmpty().withMessage("Please provide your longtitude"),
 		],
 		async (req, res) => {
-			winston.info("NEARBY_MERCHANTS_REQUEST");
-
 			const { lat, lng } = req.body;
 
 			winston.info({
-				NEARBY_MERCHANT_REQUEST_DATA: {
+				NEARBY_MERCHANTS_API_REQUEST: {
 					lat,
 					lng,
 				},
@@ -48,21 +46,19 @@ module.exports = (app) => {
 				validate(req, res);
 
 				const result = await service.GetNearbyMerchants(lat, lng);
-
-				winston.info({ NEARBY_MERCHANT_REQUEST: "SUCCESS" });
-				winston.info({ NEARBY_MERCHANTS_API_RESPONSE_DATA: result });
+				winston.info({ NEARBY_MERCHANTS_API_RESPONSE: result.length });
 
 				return res.status(200).json({ status: 200, data: result });
 			} catch (err) {
 				if (err !== null) {
-					winston.error({ NEARBY_MERCHANTS_ERROR: err });
+					winston.error({ NEARBY_MERCHANTS_API_ERROR: err });
 					winston.error(err.data);
 					return res
 						.status(err.status)
 						.json({ status: err.status, data: err.data, message: err.message });
 				}
 
-				winston.error({ NEARBY_MERCHANTS_ERROR: "Internal Server Error" });
+				winston.error({ NEARBY_MERCHANTS_API_ERROR: "Internal Server Error" });
 				return res.status(500).json({ status: 500, data: [] });
 			}
 		}
@@ -107,28 +103,31 @@ module.exports = (app) => {
 		async (req, res) => {
 			const { location, filter } = req.body;
 
-			winston.info({ FILTER_MERCHANTS_REQUEST: "REQUEST STARTED" });
-			winston.info({ RECEIVED_DATA: { location, filter } });
+			winston.info({ FILTER_MERCHANTS_API_REQUEST: { location, filter } });
 
 			try {
 				validate(req, res);
 
 				const response = await service.GetFilteredMerchants(location, filter);
 
-				winston.info({ FILTER_MERCHANTS: "SUCCESS" });
-				winston.info({ FILTER_MERCHANTS: response });
+				winston.info({ FILTER_MERCHANTS_API_RESPONSE: response });
 
 				return res.json({ status: 200, data: response });
 			} catch (err) {
 				if (err !== null) {
-					winston.error({ NEARBY_MERCHANTS_ERROR: err });
+					winston.error({
+						FILTER_MERCHANTS_API_ERROR: {
+							message: err.message,
+						},
+					});
 					winston.error(err.data);
+
 					return res
 						.status(err.status)
 						.json({ status: err.status, data: err.data, message: err.message });
 				}
 
-				winston.error({ NEARBY_MERCHANTS_ERROR: "Internal Server Error" });
+				winston.error({ NEARBY_MERCHANTS_API_ERROR: "Internal Server Error" });
 				return res.status(500).json({ status: 500, data: [] });
 			}
 		}
