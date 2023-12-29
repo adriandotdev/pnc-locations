@@ -1,18 +1,37 @@
+// Repositories
 const FavoriteMerchantsRepository = require("../repository/FavoriteMerchantsRepository");
 const MerchantsRepository = require("../repository/MerchantsRepository");
 
+// Misc
 const axios = require("axios");
 
+// Configuration File.
 const config = require("../config/config");
 
+// Utilities
 const { HttpNotFound } = require("../utils/HttpError");
 
 module.exports = class FavoriteMerchantsService {
 	constructor() {
 		this._favoriteMerchantsRepository = new FavoriteMerchantsRepository();
+
+		/**
+		 * We added the MerchantsRepository because there are methods that
+		 * we still need.
+		 */
 		this._merchantsRepository = new MerchantsRepository();
 	}
 
+	/**
+	 * @description
+	 * - This method is for adding merchant to user's favorites.
+	 * @param {*} userID
+	 * - id of the logged in user.
+	 * @param {*} userMerchantID
+	 * - id of the liked/added merchant.
+	 * @returns
+	 * - status if the merchant is successfully added.
+	 */
 	async AddMerchantToFavorites(userID, userMerchantID) {
 		const response =
 			await this._favoriteMerchantsRepository.AddMerchantToFavorites(
@@ -32,6 +51,15 @@ module.exports = class FavoriteMerchantsService {
 		return response[0][0].STATUS;
 	}
 
+	/**
+	 * @description
+	 * - This method is to retrieve all favorite merchants of users.
+	 * @param {*} object
+	 * - object that contains two properties:
+	 *  - user_id - id of the logged in user.
+	 *  - location - object that consists of lat, and lng of the location.
+	 * @returns
+	 */
 	async GetFavoriteMerchants({ user_id, location }) {
 		const favoriteMerchants =
 			await this._favoriteMerchantsRepository.GetFavoriteMerchants({
@@ -39,8 +67,12 @@ module.exports = class FavoriteMerchantsService {
 				location,
 			});
 
-		const modifiedNearbyMerchants = await Promise.all(
-			favoriteMerchants.result.map(async (merchant) => {
+		const status = favoriteMerchants.result[1][0].STATUS;
+
+		if (status === "USER_ID_NOT_FOUND") return new HttpNotFound(status, []);
+
+		const modifiedFavoriteMerchants = await Promise.all(
+			favoriteMerchants.result[0].map(async (merchant) => {
 				// Get list of stations based on current merchant_id.
 				const stations = await this._merchantsRepository.GetEVChargerTypes(
 					merchant.merchant_id,
@@ -90,6 +122,6 @@ module.exports = class FavoriteMerchantsService {
 
 		favoriteMerchants.connection.release();
 
-		return modifiedNearbyMerchants;
+		return modifiedFavoriteMerchants;
 	}
 };
