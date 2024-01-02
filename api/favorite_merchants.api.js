@@ -6,7 +6,7 @@ const winston = require("../config/winston");
 // Middleware
 const { AccessTokenVerifier } = require("../middlewares/TokenMiddleware");
 
-const { validationResult, param } = require("express-validator");
+const { validationResult, query } = require("express-validator");
 
 // Utilities
 const { HttpUnprocessableEntity } = require("../utils/HttpError");
@@ -80,17 +80,36 @@ module.exports = (app) => {
 		}
 	);
 
-	app.post(
+	app.get(
 		"/api/v1/merchants/favorites",
-		[AccessTokenVerifier],
+		[
+			AccessTokenVerifier,
+			query("user_id")
+				.notEmpty()
+				.withMessage("Missing required query: user_id")
+				.custom((value) => typeof +value === "number")
+				.withMessage("User ID must be in integer type."),
+			query("lat")
+				.notEmpty()
+				.withMessage("Missing required query: lat")
+				.custom((value) => typeof +value === "number")
+				.withMessage("Latitude must be in integer type."),
+			query("lng")
+				.notEmpty()
+				.withMessage("Missing required query: lng")
+				.custom((value) => typeof +value === "number")
+				.withMessage("Longitude must be in integer type."),
+		],
 		async (req, res) => {
-			const { lat, lng, user_id } = req.body;
+			const { lat, lng, user_id } = req.query;
 
 			winston.info({ FAVORITE_MERCHANTS_API_REQUEST: { lat, lng, user_id } });
 			try {
+				validate(req, res);
+
 				const response = await service.GetFavoriteMerchants({
-					user_id,
-					location: { lat, lng },
+					user_id: parseInt(user_id),
+					location: { lat: parseInt(lat), lng: parseInt(lng) },
 				});
 
 				winston.info({
@@ -105,7 +124,7 @@ module.exports = (app) => {
 					winston.error({ FAVORITE_MERCHANTS_API_ERROR: err });
 					winston.error(err.data);
 					return res
-						.status(err.status)
+						.status(err.status ? err.status : 500)
 						.json({ status: err.status, data: err.data, message: err.message });
 				}
 
