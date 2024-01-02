@@ -25,7 +25,7 @@ module.exports = (app) => {
 	}
 
 	/** This API is for the  */
-	app.get(
+	app.post(
 		"/api/v1/nearby_merchants",
 		[
 			BasicTokenVerifier,
@@ -54,7 +54,13 @@ module.exports = (app) => {
 				validate(req, res);
 
 				const result = await service.GetNearbyMerchants(lat, lng);
-				winston.info({ NEARBY_MERCHANTS_API_RESPONSE: result.length });
+				winston.info({
+					NEARBY_MERCHANTS_API_RESPONSE: {
+						lat,
+						lng,
+						no_of_merchants: result.length,
+					},
+				});
 
 				return res.status(200).json({ status: 200, data: result });
 			} catch (err) {
@@ -72,7 +78,7 @@ module.exports = (app) => {
 		}
 	);
 
-	app.get(
+	app.post(
 		"/api/v1/filter-merchants",
 		[
 			BasicTokenVerifier,

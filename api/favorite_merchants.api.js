@@ -80,7 +80,7 @@ module.exports = (app) => {
 		}
 	);
 
-	app.get(
+	app.post(
 		"/api/v1/merchants/favorites",
 		[AccessTokenVerifier],
 		async (req, res) => {
