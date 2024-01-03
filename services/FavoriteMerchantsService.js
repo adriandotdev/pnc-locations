@@ -124,4 +124,11 @@ module.exports = class FavoriteMerchantsService {
 
 		return modifiedFavoriteMerchants;
 	}
+
+	async RemoveMerchantsFromFavorites({ user_id, merchant_id }) {
+		await this._favoriteMerchantsRepository.RemoveMerchantsFromFavorites({
+			user_id,
+			merchant_id,
+		});
+	}
 };

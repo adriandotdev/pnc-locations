@@ -41,4 +41,20 @@ module.exports = class FavoriteMerchantsRepository {
 			});
 		});
 	}
+
+	RemoveMerchantsFromFavorites({ user_id, merchant_id }) {
+		return new Promise((resolve, reject) => {
+			mysql.query(
+				"DELETE FROM favorite_merchants WHERE user_id = ? AND user_merchant_id = ?",
+				[user_id, merchant_id],
+				(err, result) => {
+					if (err) {
+						reject(err);
+					}
+
+					resolve(result);
+				}
+			);
+		});
+	}
 };

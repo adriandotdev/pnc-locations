@@ -132,4 +132,51 @@ module.exports = (app) => {
 			}
 		}
 	);
+
+	app.delete(
+		"/api/v1/merchants/favorites",
+		[
+			AccessTokenVerifier,
+			query("merchant_id").notEmpty().withMessage("Please provide merchant_id"),
+		],
+		async (req, res) => {
+			const { merchant_id } = req.query;
+
+			winston.info({
+				REMOVE_MERCHANTS_FROM_FAVORITES_API_REQUEST: {
+					user_id: req.id,
+					merchant_id,
+				},
+			});
+			try {
+				validate(req, res);
+
+				await service.RemoveMerchantsFromFavorites({
+					user_id: req.id,
+					merchant_id,
+				});
+
+				winston.info({
+					REMOVE_MERCHANTS_FROM_FAVORITES_API_RESPONSE: {
+						message: "SUCCESS",
+					},
+				});
+
+				return res.status(200).json({ status: 200, data: [] });
+			} catch (err) {
+				if (err !== null) {
+					winston.error({ REMOVE_MERCHANTS_FROM_FAVORITES_API_ERROR: err });
+					winston.error(err.data);
+					return res
+						.status(err.status ? err.status : 500)
+						.json({ status: err.status, data: err.data, message: err.message });
+				}
+
+				winston.error({
+					REMOVE_MERCHANTS_FROM_FAVORITES_API_ERROR: "Internal Server Error",
+				});
+				return res.status(500).json({ status: 500, data: [] });
+			}
+		}
+	);
 };
