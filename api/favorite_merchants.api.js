@@ -84,11 +84,6 @@ module.exports = (app) => {
 		"/api/v1/merchants/favorites",
 		[
 			AccessTokenVerifier,
-			query("user_id")
-				.notEmpty()
-				.withMessage("Missing required query: user_id")
-				.custom((value) => typeof +value === "number")
-				.withMessage("User ID must be in integer type."),
 			query("lat")
 				.notEmpty()
 				.withMessage("Missing required query: lat")
@@ -101,14 +96,16 @@ module.exports = (app) => {
 				.withMessage("Longitude must be in integer type."),
 		],
 		async (req, res) => {
-			const { lat, lng, user_id } = req.query;
+			const { lat, lng } = req.query;
 
-			winston.info({ FAVORITE_MERCHANTS_API_REQUEST: { lat, lng, user_id } });
+			winston.info({
+				FAVORITE_MERCHANTS_API_REQUEST: { lat, lng, user_id: req.id },
+			});
 			try {
 				validate(req, res);
 
 				const response = await service.GetFavoriteMerchants({
-					user_id: parseInt(user_id),
+					user_id: parseInt(req.id),
 					location: { lat: parseInt(lat), lng: parseInt(lng) },
 				});
 
