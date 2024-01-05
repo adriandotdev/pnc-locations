@@ -1,117 +1,103 @@
 const jwt = require("jsonwebtoken");
 const JsonWebToken = require("../utils/JsonWebToken");
 const config = require("../config/config");
-const { HttpUnauthorized } = require("../utils/HttpError");
-const winston = require("../config/winston");
-const AuthorizationRepository = require("../repository/AuthorizationRepository");
+const {
+	HttpUnauthorized,
+	HttpInternalServerError,
+	HttpForbidden,
+} = require("../utils/HttpError");
+const logger = require("../config/winston");
+const Crypto = require("../utils/Crypto");
+const AccountRepository = require("../repository/AuthenticationRepository");
 
-const authorizationRepository = new AuthorizationRepository();
+const repository = new AccountRepository();
 
 const AccessTokenVerifier = async (req, res, next) => {
-	winston.info("Access Token Verifier Middleware");
+	// logger
+	logger.info({
+		ACCESS_TOKEN_VERIFIER_MIDDLEWARE: {
+			access_token: req.headers["authorization"]?.split(" ")[1],
+		},
+	});
 
 	try {
 		const accessToken = req.headers["authorization"]?.split(" ")[1];
 
 		if (!accessToken) throw new HttpUnauthorized("Unauthorized", []);
 
-		JsonWebToken.Verify(accessToken, config.jwt.accessTokenSecretKey);
+		const decryptedAccessToken = Crypto.Decrypt(accessToken);
 
-		const result = JsonWebToken.Decode(accessToken);
-
-		req.username = result.data.username;
-		req.id = result.data.id;
-		req.role_id = result.data.role_id;
-		req.access_token = accessToken;
-
-		const response = await authorizationRepository.GetAccessToken(
-			result.data.username
+		const isAccessTokenExistingInDB = await repository.FindAccessToken(
+			decryptedAccessToken
 		);
 
-		const accessTokenFromDB = response.result[0].access_token;
-
-		if (accessToken !== accessTokenFromDB) {
-			response.connection.release();
-			throw new HttpUnauthorized("Invalid Token", []);
+		if (isAccessTokenExistingInDB.length < 1) {
+			throw new HttpUnauthorized("Unauthorized", []);
 		}
 
-		winston.info("Access Token Verifier Middleware: SUCCESS");
+		JsonWebToken.Verify(
+			decryptedAccessToken,
+			config.jwt.accessTokenSecretKey,
+			(err, decode) => {
+				if (err) {
+					if (err instanceof jwt.TokenExpiredError) {
+						throw new HttpUnauthorized("Token Expired", []);
+					} else if (err instanceof jwt.JsonWebTokenError) {
+						throw new HttpUnauthorized("Invalid Token", []);
+					} else {
+						throw new HttpInternalServerError("Internal Server Error", []);
+					}
+				}
 
-		response.connection.release();
+				if (
+					decode.iss !== "parkncharge" ||
+					decode.typ !== "Bearer" ||
+					decode.aud !== "parkncharge-app" ||
+					decode.usr !== "serv"
+				)
+					throw new HttpUnauthorized("Unauthorized", []);
+
+				req.username = decode.data.username;
+				req.id = decode.data.id;
+				req.role_id = decode.data.role_id;
+				req.access_token = decryptedAccessToken;
+			}
+		);
+
+		logger.info({
+			ACCESS_TOKEN_VERIFIER_MIDDLEWARE: {
+				message: "SUCCESS",
+			},
+		});
 		next();
 	} catch (err) {
-		if (err instanceof jwt.JsonWebTokenError) {
-			winston.error("Access Token Verifier Middleware Error: Invalid Token");
-			return res
-				.status(401)
-				.json({ status: 401, data: [], message: "Invalid Token" });
-		} else if (err instanceof jwt.TokenExpiredError) {
-			winston.error("Access Token Verifier Middleware Error: Token Expired");
-			return res
-				.status(401)
-				.json({ status: 401, data: [], message: "Token Expired" });
-		} else if (err !== null) {
-			winston.error(`Access Token Verifier Middleware Error: ${err.message}`);
-			return res
-				.status(err.status)
-				.json({ status: err.status, data: [], message: err.message });
-		} else {
-			winston.error(
-				"Access Token Verifier Middleware Error: Internal Server Error"
-			);
-			return res
-				.status(500)
-				.json({ status: 500, data: [], message: "Internal Server Error" });
+		logger.error({
+			ACCESS_TOKEN_VERIFIER_MIDDLEWARE_ERROR: {
+				message: err.message,
+			},
+		});
+
+		if (err !== null) {
+			return res.status(err.status ? err.status : 500).json({
+				status: err.status ? err.status : 500,
+				data: err.data,
+				message: err.message,
+			});
 		}
-	}
-};
 
-const RefreshTokenVerifier = (req, res, next) => {
-	winston.info("Refresh Token Verifier Middleware");
-
-	try {
-		const refreshToken = req.headers["authorization"]?.split(" ")[1];
-
-		if (!refreshToken) throw new HttpUnauthorized("Unauthorized", []);
-
-		JsonWebToken.Verify(refreshToken, config.jwt.refreshTokenSecretKey);
-
-		const result = JsonWebToken.Decode(refreshToken);
-
-		req.username = result.data.username;
-		req.id = result.data.id;
-		req.role_id = result.data.role_id;
-		req.refresh_token = refreshToken;
-
-		winston.info("Refresh Token Verifier Middleware Response: SUCCESS");
-		next();
-	} catch (err) {
-		if (err instanceof jwt.JsonWebTokenError) {
-			winston.error("Refresh Token Verifier Error: Invalid Token");
-			return res
-				.status(401)
-				.json({ status: 401, data: [], message: "Invalid Token" });
-		} else if (err instanceof jwt.TokenExpiredError) {
-			winston.error("Refresh Token Verifier Error: Token Expired");
-			return res
-				.status(401)
-				.json({ status: 401, data: [], message: "Token Expired" });
-		} else if (err !== null) {
-			winston.error(`Refresh Token Verifier Error: ${err.message}`);
-			return res
-				.status(err.status)
-				.json({ status: err.status, data: [], message: err.message });
-		} else {
-			winston.error("Refresh Token Verifier Error: Internal Server Error");
-			return res
-				.status(500)
-				.json({ status: 500, data: [], message: "Internal Server Error" });
-		}
+		return res
+			.status(500)
+			.json({ status: 500, data: [], message: "Internal Server Error" });
 	}
 };
 
 const BasicTokenVerifier = (req, res, next) => {
-	winston.info("Basic Token Verifier Middleware");
+	logger.info({
+		BASIC_TOKEN_VERIFIER_MIDDLEWARE: {
+			token: req.headers["authorization"]?.split(" ")[1],
+		},
+	});
+
 	try {
 		const token = req.headers["authorization"]?.split(" ")[1];
 
@@ -119,28 +105,47 @@ const BasicTokenVerifier = (req, res, next) => {
 
 		JsonWebToken.Verify(token, config.parkncharge.secretKey);
 
-		winston.info("Basic Token Verifier Middleware Response: SUCCESS");
+		logger.info({
+			BASIC_TOKEN_VERIFIER_MIDDLEWARE: {
+				message: "Valid Token",
+			},
+		});
 		next();
 	} catch (err) {
 		if (err instanceof jwt.JsonWebTokenError) {
-			winston.error("Basic Token Verifier Middleware Error: Invalid Token");
+			logger.error({
+				BASIC_TOKEN_VERIFIER_MIDDLEWARE_ERROR: {
+					message: "Invalid Token",
+				},
+			});
 			return res
 				.status(401)
 				.json({ status: 401, data: [], message: "Invalid Token" });
 		} else if (err instanceof jwt.TokenExpiredError) {
-			winston.error("Basic Token Verifier Middleware Error: Token Expired");
+			logger.error({
+				BASIC_TOKEN_VERIFIER_MIDDLEWARE_ERROR: {
+					message: "Token Expired",
+				},
+			});
 			return res
 				.status(401)
 				.json({ status: 401, data: [], message: "Token Expired" });
 		} else if (err !== null) {
-			winston.error(`Basic Token Verifier Middleware Error: ${err.message}`);
+			logger.error({
+				BASIC_TOKEN_VERIFIER_MIDDLEWARE_ERROR: {
+					message: err.message,
+				},
+			});
 			return res
 				.status(err.status)
 				.json({ status: err.status, data: [], message: err.message });
 		} else {
-			winston.error(
-				"Basic Token Verifier Middleware Error: Internal Server Error"
-			);
+			logger.error({
+				BASIC_TOKEN_VERIFIER_MIDDLEWARE_ERROR: {
+					message: "Internal Server Error",
+				},
+			});
+
 			return res
 				.status(500)
 				.json({ status: 500, data: [], message: "Internal Server Error" });
@@ -150,6 +155,5 @@ const BasicTokenVerifier = (req, res, next) => {
 
 module.exports = {
 	AccessTokenVerifier,
-	RefreshTokenVerifier,
 	BasicTokenVerifier,
 };

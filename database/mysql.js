@@ -1,5 +1,6 @@
 var mysql = require("mysql2");
 const config = require("../config/config");
+const logger = require("../config/winston");
 
 let pool = mysql.createPool({
 	connectionLimit: config.db.connection_limit,
@@ -16,13 +17,13 @@ pool.getConnection(function (err, connection) {
 	}
 
 	if (connection) {
-		console.log("Connected to DB");
+		logger.info("Connected to DB");
 		connection.release(); //reuse of connection every after access
 	}
 });
 
 pool.on("release", function (connection) {
-	console.log("Connection %d released", connection.threadId);
+	logger.info("Connection %d released", connection.threadId);
 });
 
 module.exports = pool;

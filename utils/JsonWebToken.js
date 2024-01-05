@@ -5,15 +5,8 @@ module.exports = class JWT {
 		return jwt.sign(payload, secretKey);
 	}
 
-	static Verify(token, secretKey) {
-		try {
-			jwt.verify(token, secretKey);
-		} catch (err) {
-			if (err instanceof jwt.TokenExpiredError)
-				throw new jwt.TokenExpiredError("Token Expired");
-
-			throw new jwt.JsonWebTokenError("Invalid Token");
-		}
+	static Verify(token, secretKey, callback) {
+		jwt.verify(token, secretKey, callback);
 	}
 
 	static Decode(token) {
