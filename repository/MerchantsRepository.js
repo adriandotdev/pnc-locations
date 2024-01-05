@@ -147,4 +147,82 @@ module.exports = class MerchantsRepository {
 			);
 		});
 	}
+
+	GetNearbyMerchantsWithFavorites({ user_id, lat, lng }) {
+		return new Promise((resolve, reject) => {
+			mysql.query(
+				`
+			SELECT
+			favorite_merchants.user_merchant_id AS 'favorite',
+			user_merchants.id AS merchant_id,
+			merchant_name AS merchant,
+			building_name,
+			address_lat AS lat,
+			address_lng AS lng,
+			ROUND(6371 * 2 * ASIN(SQRT(
+			  POWER(SIN((? - ABS(address_lat)) * PI() / 180 / 2), 2) +
+			  COS(? * PI() / 180) * COS(ABS(address_lat) * PI() / 180) *
+			  POWER(SIN((? - address_lng) * PI() / 180 / 2), 2)
+			)), 1) AS distance
+			FROM
+			user_merchants
+			LEFT JOIN favorite_merchants
+			ON user_merchants.id = favorite_merchants.user_merchant_id
+			WHERE favorite_merchants.user_id = ?
+			HAVING
+			distance < 1000
+			ORDER BY
+			distance`,
+				[lat, lat, lng, user_id],
+				(err, result) => {
+					if (err) {
+						reject(err);
+					}
+
+					resolve(result);
+				}
+			);
+		});
+	}
+
+	GetFilteredMerchantsWithFavorites({ user_id, location, filter, connection }) {
+		return new Promise((resolve, reject) => {
+			connection.query(
+				`SELECT
+					DISTINCT (user_merchants.id) AS merchant_id,
+					merchant_name AS merchant,
+					building_name,
+					address_lat AS lat,
+					address_lng AS lng,
+					ROUND(6371 * 2 * ASIN(SQRT(
+					  POWER(SIN((? - ABS(address_lat)) * PI() / 180 / 2), 2) +
+					  COS(? * PI() / 180) * COS(ABS(address_lat) * PI() / 180) *
+					  POWER(SIN((? - address_lng) * PI() / 180 / 2), 2)
+					)), 1) AS distance
+					FROM
+					user_merchants
+					LEFT JOIN favorite_merchants
+					ON user_merchants.id = favorite_merchants.user_merchant_id
+					INNER JOIN ev_chargers
+					ON favorite_merchants.user_merchant_id = ev_chargers.user_merchant_id
+					WHERE region = ? AND city = ? AND TYPE IN (${filter.types}) AND meter_type IN (${filter.meter_types}) 
+					AND favorite_merchants.user_id = ?`,
+				[
+					location.lat,
+					location.lat,
+					location.lng,
+					filter.region,
+					filter.city,
+					user_id,
+				],
+				(err, result) => {
+					if (err) {
+						reject(err);
+					}
+
+					resolve(result);
+				}
+			);
+		});
+	}
 };
