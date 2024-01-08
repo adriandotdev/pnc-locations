@@ -34,14 +34,18 @@ module.exports = (app) => {
 			BasicTokenVerifier,
 			body("lat")
 				.notEmpty()
-				.withMessage("Please provide your latitude")
+				.withMessage("Missing required property: lat (latitude)")
 				.custom((value) => typeof value === "number")
-				.withMessage("Latitude must be in integer type."),
+				.withMessage(
+					"Latitude must be in number type. Example of valid latitude: 14.5564414"
+				),
 			body("lng")
 				.notEmpty()
-				.withMessage("Please provide your longtitude")
+				.withMessage("Missing required property: lng (longitude)")
 				.custom((value) => typeof value === "number")
-				.withMessage("Longitude must be in integer type."),
+				.withMessage(
+					"Longitude must be in number type. Example of valid longitude: 121.0218253"
+				),
 		],
 		async (req, res) => {
 			const { lat, lng } = req.body;
@@ -91,12 +95,16 @@ module.exports = (app) => {
 			body("location.lat")
 				.if(body("location").exists())
 				.notEmpty()
-				.withMessage("Missing required property: lat (location latitude)")
+				.withMessage(
+					"Missing required property: lat (latitude). Example of valid latitude: 14.5564414"
+				)
 				.isDecimal(),
 			body("location.lng")
 				.if(body("location").exists())
 				.notEmpty()
-				.withMessage("Missing required property: lng (location longtitude)"),
+				.withMessage(
+					"Missing required property: lng (longitude). Example of valid longitude: 121.0218253"
+				),
 			body("filter")
 				.notEmpty()
 				.withMessage("Missing required property: filter"),
@@ -160,14 +168,18 @@ module.exports = (app) => {
 			AccessTokenVerifier,
 			body("lat")
 				.notEmpty()
-				.withMessage("Please provide your latitude")
+				.withMessage(
+					"Missing required property: lat (latitude). Example of valid latitude: 14.5564414."
+				)
 				.custom((value) => typeof value === "number")
-				.withMessage("Latitude must be in integer type."),
+				.withMessage("Latitude must be in number type."),
 			body("lng")
 				.notEmpty()
-				.withMessage("Please provide your longtitude")
+				.withMessage(
+					"Missing required property: lng (longitude). Example of valid longitude: 121.0218253."
+				)
 				.custom((value) => typeof value === "number")
-				.withMessage("Longitude must be in integer type."),
+				.withMessage("Longitude must be in number type."),
 		],
 		async (req, res) => {
 			const { lat, lng } = req.body;
@@ -221,12 +233,16 @@ module.exports = (app) => {
 			body("location.lat")
 				.if(body("location").exists())
 				.notEmpty()
-				.withMessage("Missing required property: lat (location latitude)")
+				.withMessage(
+					"Missing required property: lat (latitude). Example of valid latitude: 14.5564414."
+				)
 				.isDecimal(),
 			body("location.lng")
 				.if(body("location").exists())
 				.notEmpty()
-				.withMessage("Missing required property: lng (location longtitude)"),
+				.withMessage(
+					"Missing required property: lng (longitude). Example of valid longitude: 121.0218253."
+				),
 			body("filter")
 				.notEmpty()
 				.withMessage("Missing required property: filter"),

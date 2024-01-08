@@ -108,6 +108,7 @@ module.exports = class FavoriteMerchantsService {
 				);
 
 				return {
+					favorite: true,
 					...merchant,
 					formatted_address: addressDetails.data.results[0].formatted_address,
 					city: city.short_name,
