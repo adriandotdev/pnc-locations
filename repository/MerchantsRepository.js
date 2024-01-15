@@ -105,18 +105,51 @@ module.exports = class MerchantsRepository {
 	GetEVChargerTypes(merchant_id, connection) {
 		return new Promise((resolve, reject) => {
 			connection.query(
-				`SELECT DISTINCT(evc.id) AS ev_charger_id, evc.status AS ev_charger_status, evc.type AS plug_type, evc.model, evc.vendor, evc.serial_number, evc.box_serial_number, evc.firmware_version, evc.meter_type AS charger_type, setting.kwh AS power 
-                FROM ev_chargers AS evc 
-                INNER JOIN ev_charger_timeslots AS evct
-                ON evc.id = evct.ev_charger_id
-                INNER JOIN settings_timeslots AS setting
-                ON evct.settings_timeslot_id = setting.id
-                WHERE user_merchant_id = ?`,
+				`SELECT DISTINCT(evc.id) AS ev_charger_id, 
+					evc.status AS ev_charger_status, 
+					evc.type AS plug_type, 
+					evc.model, 
+					evc.vendor, 
+					evc.serial_number, 
+					evc.box_serial_number, 
+					evc.firmware_version, 
+					evc.meter_type AS charger_type, 
+					setting.kwh AS power,
+					(SELECT COUNT(*) ev_charger_id 
+				 	FROM ev_charger_timeslots 
+				 	WHERE status = 'ONLINE' 
+				 	AND ev_charger_timeslots.ev_charger_id = evc.id) AS available_timeslots
+				FROM ev_chargers AS evc 
+					INNER JOIN ev_charger_timeslots AS evct
+					ON evc.id = evct.ev_charger_id
+					INNER JOIN settings_timeslots AS setting
+					ON evct.settings_timeslot_id = setting.id
+				WHERE user_merchant_id = ?`,
 				[merchant_id],
 				(err, result) => {
 					if (err) {
 						reject(err);
 					}
+					resolve(result);
+				}
+			);
+		});
+	}
+
+	GetChargerAvailableTimeslots(evc_id, connection) {
+		return new Promise((resolve, reject) => {
+			connection.query(
+				`SELECT COUNT(*) AS available_slots
+			FROM ev_chargers
+			INNER JOIN ev_charger_timeslots
+			ON ev_chargers.id = ev_charger_timeslots.ev_charger_id
+			WHERE ev_chargers.id = ? AND ev_charger_timeslots.status = 'ONLINE'`,
+				[evc_id],
+				(err, result) => {
+					if (err) {
+						reject(err);
+					}
+
 					resolve(result);
 				}
 			);
