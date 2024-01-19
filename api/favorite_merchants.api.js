@@ -32,7 +32,7 @@ module.exports = (app) => {
 	}
 
 	app.post(
-		"/api/v1/merchants/favorites/:user_merchant_id",
+		"/booking_merchants/api/v1/merchants/favorites/:user_merchant_id",
 
 		[AccessTokenVerifier],
 		async (req, res) => {
@@ -81,7 +81,7 @@ module.exports = (app) => {
 	);
 
 	app.get(
-		"/api/v1/merchants/favorites",
+		"/booking_merchants/api/v1/merchants/favorites",
 		[
 			AccessTokenVerifier,
 			query("lat")
@@ -134,7 +134,7 @@ module.exports = (app) => {
 	);
 
 	app.delete(
-		"/api/v1/merchants/favorites",
+		"/booking_merchants/api/v1/merchants/favorites",
 		[
 			AccessTokenVerifier,
 			query("merchant_id").notEmpty().withMessage("Please provide merchant_id"),

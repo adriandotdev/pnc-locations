@@ -29,7 +29,7 @@ module.exports = (app) => {
 
 	/** This API is for the  */
 	app.post(
-		"/api/v1/nearby_merchants",
+		"/booking_merchants/api/v1/nearby_merchants",
 		[
 			BasicTokenVerifier,
 			body("lat")
@@ -86,7 +86,7 @@ module.exports = (app) => {
 	);
 
 	app.post(
-		"/api/v1/filter-merchants",
+		"/booking_merchants/api/v1/filter-merchants",
 		[
 			BasicTokenVerifier,
 			body("location")
@@ -163,7 +163,7 @@ module.exports = (app) => {
 	);
 
 	app.post(
-		"/api/v1/nearby-favorite-merchants",
+		"/booking_merchants/api/v1/nearby-favorite-merchants",
 		[
 			AccessTokenVerifier,
 			body("lat")
@@ -224,7 +224,7 @@ module.exports = (app) => {
 	);
 
 	app.post(
-		"/api/v1/filtered-favorite-merchants",
+		"/booking_merchants/api/v1/filtered-favorite-merchants",
 		[
 			AccessTokenVerifier,
 			body("location")
