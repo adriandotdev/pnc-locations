@@ -54,6 +54,48 @@ module.exports = class MerchantsRepository {
 		});
 	}
 
+	GetNearbyMerchant(data) {
+		return new Promise((resolve, reject) => {
+			mysql.getConnection((err, connection) => {
+				if (err) {
+					connection.release();
+					reject(err);
+				}
+
+				connection.query(
+					`
+					SELECT
+						user_merchants.id AS merchant_id,
+						merchant_name AS merchant,
+						building_name,
+						address_lat AS lat,
+						address_lng AS lng,
+						ROUND(6371 * 2 * ASIN(SQRT(
+						POWER(SIN((? - ABS(address_lat)) * PI() / 180 / 2), 2) +
+						COS(? * PI() / 180) * COS(ABS(address_lat) * PI() / 180) *
+						POWER(SIN((? - address_lng) * PI() / 180 / 2), 2)
+						)), 1) AS distance,
+						(SELECT CASE WHEN distance <= 2 THEN 1 ELSE 0 END) AS very_nearby
+					FROM
+					user_merchants
+					WHERE user_merchants.id = ?`,
+					[
+						data.location.lat,
+						data.location.lat,
+						data.location.lng,
+						data.merchant_id,
+					],
+					(err, result) => {
+						if (err) {
+							reject(err);
+						}
+						resolve({ result, connection });
+					}
+				);
+			});
+		});
+	}
+
 	/**
 	 * Reason why there are still lat, and lng because we need how far the merchant from the user's location.
 	 */

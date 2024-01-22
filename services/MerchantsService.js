@@ -69,6 +69,58 @@ module.exports = class NearbyMerchantsService {
 		return modifiedNearbyMerchants;
 	}
 
+	async GetNearbyMerchant(data) {
+		const response = await this._repository.GetNearbyMerchant(data);
+
+		if (response.result.length === 0) {
+			response.connection.release();
+			return 0;
+		}
+
+		const stations = await this._repository.GetEVChargerTypes(
+			data.merchant_id,
+			response.connection
+		);
+
+		const amenities = await this._repository.GetAmenities(
+			data.merchant_id,
+			response.connection
+		);
+
+		const addressDetails = await axios.get(
+			`https://maps.googleapis.com/maps/api/geocode/json?latlng=${data.location.lat},${data.location.lng}&key=${config.googleAuth.GEO_API_KEY}`
+		);
+
+		// Extract the city from address components from Google response.
+		const city = addressDetails.data.results[0].address_components.find(
+			(addr) => addr.types[0] === "locality" || addr.types[2] === "political"
+		);
+
+		// Extract the region from address components from Google response.
+		const region = addressDetails.data.results[0].address_components.find(
+			(addr) =>
+				addr.types[0] === "administrative_area_level_1" ||
+				addr.types[2] === "political"
+		);
+
+		// Extract the country from the address components from Google response.
+		const country = addressDetails.data.results[0].address_components.find(
+			(addr) => addr.types[0] === "country" || addr.types[2] === "political"
+		);
+
+		response.connection.release();
+
+		return {
+			...response.result[0],
+			formatted_address: addressDetails.data.results[0].formatted_address,
+			city: city.short_name,
+			region: region.short_name,
+			country: country.long_name,
+			country_code: country.short_name,
+			stations,
+			amenities,
+		};
+	}
 	async GetFilteredMerchants(location, filter) {
 		const types = filter.types
 			.map((type, index) => {

@@ -1,5 +1,5 @@
 const MerchantsService = require("../services/MerchantsService");
-const { validationResult, body } = require("express-validator");
+const { validationResult, body, param } = require("express-validator");
 const winston = require("../config/winston");
 const {
 	BasicTokenVerifier,
@@ -302,6 +302,59 @@ module.exports = (app) => {
 
 				winston.error({
 					FILTER_MERCHANTS_WITH_FAVORITES_API_ERROR: "Internal Server Error",
+				});
+				return res.status(500).json({ status: 500, data: [] });
+			}
+		}
+	);
+
+	app.get(
+		"/booking_merchants/api/v1/merchants/:merchant_id/:lat/:lng",
+		[
+			BasicTokenVerifier,
+			param("merchant_id")
+				.custom((value) => value !== undefined || value !== null)
+				.withMessage("Missing required property: merchant_id"),
+		],
+		async (req, res) => {
+			const { merchant_id, lat, lng } = req.params;
+
+			winston.info({ GET_MERCHANT_API_REQUEST: { merchant_id, lng, lng } });
+			try {
+				validate(req, res);
+
+				const response = await service.GetNearbyMerchant({
+					merchant_id,
+					location: {
+						lat,
+						lng,
+					},
+				});
+
+				winston.info({ GET_MERCHANT_API_RESPONSE: response });
+				if (response === 0)
+					return res
+						.status(200)
+						.json({ status: 200, message: "MERCHANT_NOT_FOUND" });
+
+				return res.status(200).json({ status: 200, data: response });
+			} catch (err) {
+				if (err !== null) {
+					winston.error({
+						GET_MERCHANT_API_ERROR: {
+							message: err.message,
+						},
+					});
+
+					return res.status(err.status ? err.status : 500).json({
+						status: err.status ? err.status : 500,
+						data: err.data,
+						message: err.message,
+					});
+				}
+
+				winston.error({
+					GET_MERCHANT_API_ERROR: "Internal Server Error",
 				});
 				return res.status(500).json({ status: 500, data: [] });
 			}
