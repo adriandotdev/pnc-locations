@@ -106,7 +106,7 @@ module.exports = (app) => {
 
 				const response = await service.GetFavoriteMerchants({
 					user_id: parseInt(req.id),
-					location: { lat: parseInt(lat), lng: parseInt(lng) },
+					location: { lat: lat, lng: lng },
 				});
 
 				winston.info({
