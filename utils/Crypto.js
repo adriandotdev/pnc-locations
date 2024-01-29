@@ -1,8 +1,7 @@
-const config = require("../config/config");
 const crypto = require("crypto");
-const algorithm = config.encryption.algorithm;
-const iv = config.encryption.iv;
-const key = config.encryption.secret_key;
+const algorithm = process.env.CRYPTO_ALGORITHM;
+const iv = process.env.CRYPTO_IV;
+const key = process.env.CRYPTO_SECRET_KEY;
 
 module.exports = class Crypto {
 	static Encrypt(text) {

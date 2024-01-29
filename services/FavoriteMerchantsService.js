@@ -86,7 +86,7 @@ module.exports = class FavoriteMerchantsService {
 				);
 
 				const addressDetails = await axios.get(
-					`https://maps.googleapis.com/maps/api/geocode/json?latlng=${merchant.lat},${merchant.lng}&key=${config.googleAuth.GEO_API_KEY}`
+					`https://maps.googleapis.com/maps/api/geocode/json?latlng=${merchant.lat},${merchant.lng}&key=${process.env.GOOGLE_GEO_API_KEY}`
 				);
 
 				// Extract the city from address components from Google response.

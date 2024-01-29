@@ -1,10 +1,9 @@
+require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const JsonWebToken = require("../utils/JsonWebToken");
-const config = require("../config/config");
 const {
 	HttpUnauthorized,
 	HttpInternalServerError,
-	HttpForbidden,
 } = require("../utils/HttpError");
 const logger = require("../config/winston");
 const Crypto = require("../utils/Crypto");
@@ -37,7 +36,7 @@ const AccessTokenVerifier = async (req, res, next) => {
 
 		JsonWebToken.Verify(
 			decryptedAccessToken,
-			config.jwt.accessTokenSecretKey,
+			process.env.JWT_ACCESS_KEY,
 			(err, decode) => {
 				if (err) {
 					if (err instanceof jwt.TokenExpiredError) {
@@ -103,7 +102,7 @@ const BasicTokenVerifier = (req, res, next) => {
 
 		if (!token) throw new HttpUnauthorized("Unauthorized", []);
 
-		JsonWebToken.Verify(token, config.parkncharge.secretKey);
+		JsonWebToken.Verify(token, process.env.PARKNCHARGE_SECRET_KEY);
 
 		logger.info({
 			BASIC_TOKEN_VERIFIER_MIDDLEWARE: {

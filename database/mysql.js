@@ -1,13 +1,13 @@
+require("dotenv").config();
 var mysql = require("mysql2");
-const config = require("../config/config");
 const logger = require("../config/winston");
 
 let pool = mysql.createPool({
-	connectionLimit: config.db.connection_limit,
-	host: config.db.host,
-	user: config.db.user,
-	password: config.db.password, // Default and standard password here in sysnet.
-	database: config.db.database,
+	connectionLimit: process.env.DB_CONNECTION_LIMIT,
+	host: process.env.DB_HOST,
+	user: process.env.DB_USER,
+	password: process.env.DB_PASSWORD, // Default and standard password here in sysnet.
+	database: process.env.DB_DATABASE,
 });
 
 pool.getConnection(function (err, connection) {
