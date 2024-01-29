@@ -3,10 +3,6 @@ const axios = require("axios");
 // Repository
 const MerchantsRepository = require("../repository/MerchantsRepository");
 
-// Config
-const config = require("../config/config");
-const winston = require("../config/winston");
-
 module.exports = class NearbyMerchantsService {
 	constructor() {
 		this._repository = new MerchantsRepository();
@@ -30,7 +26,7 @@ module.exports = class NearbyMerchantsService {
 				);
 
 				const addressDetails = await axios.get(
-					`https://maps.googleapis.com/maps/api/geocode/json?latlng=${merchant.lat},${merchant.lng}&key=${config.googleAuth.GEO_API_KEY}`
+					`https://maps.googleapis.com/maps/api/geocode/json?latlng=${merchant.lat},${merchant.lng}&key=${process.env.GOOGLE_GEO_API_KEY}`
 				);
 
 				// Extract the city from address components from Google response.
@@ -88,7 +84,7 @@ module.exports = class NearbyMerchantsService {
 		);
 
 		const addressDetails = await axios.get(
-			`https://maps.googleapis.com/maps/api/geocode/json?latlng=${data.location.lat},${data.location.lng}&key=${config.googleAuth.GEO_API_KEY}`
+			`https://maps.googleapis.com/maps/api/geocode/json?latlng=${data.location.lat},${data.location.lng}&key=${process.env.GOOGLE_GEO_API_KEY}`
 		);
 
 		// Extract the city from address components from Google response.
@@ -162,7 +158,7 @@ module.exports = class NearbyMerchantsService {
 				);
 
 				const addressDetails = await axios.get(
-					`https://maps.googleapis.com/maps/api/geocode/json?latlng=${merchant.lat},${merchant.lng}&key=${config.googleAuth.GEO_API_KEY}`
+					`https://maps.googleapis.com/maps/api/geocode/json?latlng=${merchant.lat},${merchant.lng}&key=${process.env.GOOGLE_GEO_API_KEY}`
 				);
 
 				// Extract the city from address components from Google response.
@@ -235,7 +231,7 @@ module.exports = class NearbyMerchantsService {
 				);
 
 				const addressDetails = await axios.get(
-					`https://maps.googleapis.com/maps/api/geocode/json?latlng=${merchant.lat},${merchant.lng}&key=${config.googleAuth.GEO_API_KEY}`
+					`https://maps.googleapis.com/maps/api/geocode/json?latlng=${merchant.lat},${merchant.lng}&key=${process.env.GOOGLE_GEO_API_KEY}`
 				);
 
 				// Extract the city from address components from Google response.
@@ -333,7 +329,7 @@ module.exports = class NearbyMerchantsService {
 				);
 
 				const addressDetails = await axios.get(
-					`https://maps.googleapis.com/maps/api/geocode/json?latlng=${merchant.lat},${merchant.lng}&key=${config.googleAuth.GEO_API_KEY}`
+					`https://maps.googleapis.com/maps/api/geocode/json?latlng=${merchant.lat},${merchant.lng}&key=${process.env.GOOGLE_GEO_API_KEY}`
 				);
 
 				// Extract the city from address components from Google response.

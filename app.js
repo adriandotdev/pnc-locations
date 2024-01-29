@@ -3,7 +3,6 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const app = express();
-const config = require("./config/config");
 
 // Loggers
 const morgan = require("morgan");
