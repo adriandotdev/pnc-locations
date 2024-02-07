@@ -7,6 +7,9 @@ const app = express();
 // Loggers
 const morgan = require("morgan");
 const winston = require("./config/winston");
+const { graphqlHTTP } = require("express-graphql");
+
+const schema = require("./graphql/schema");
 
 // Global Middlewares
 app.use(
@@ -24,6 +27,20 @@ app.use(cookieParser());
 
 require("./api/merchants.api")(app);
 require("./api/favorite_merchants.api")(app);
+
+app.use(
+	"/graphql",
+	graphqlHTTP((req, res) => {
+		return {
+			schema,
+			graphiql: true,
+			context: {
+				auth: req.headers.authorization?.split(" ")[1],
+			},
+		};
+	})
+);
+
 app.use("*", (_req, res, _next) => {
 	return res.status(404).json({ status: 404, data: [], message: "Not Found" });
 });
