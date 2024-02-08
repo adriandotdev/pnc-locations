@@ -12,6 +12,7 @@ const {
 const mysql = require("../database/mysql");
 
 const BasicTokenVerifier = require("./BasicTokenVerifier");
+const AccessTokenVerifier = require("./AccessTokenVerifier");
 
 const LocationsRepository = require("../repository/LocationsRepository");
 
@@ -103,12 +104,43 @@ const LOCATIONS_WITH_FAVORITES = new GraphQLObjectType({
 	}),
 });
 
+const FAVORITE_LOCATIONS = new GraphQLObjectType({
+	name: "FAVORITE_LOCATIONS",
+	fields: () => ({
+		id: { type: GraphQLInt },
+		publish: { type: GraphQLBoolean },
+		name: { type: GraphQLString },
+		address: { type: GraphQLString },
+		address_lat: { type: GraphQLFloat },
+		address_lng: { type: GraphQLFloat },
+		city: { type: GraphQLString },
+		date_created: { type: GraphQLString },
+		date_modified: { type: GraphQLString },
+		distance: { type: GraphQLFloat },
+		favorite: { type: GraphQLString, defaultValue: "true" },
+		evses: {
+			type: new GraphQLList(EVSE),
+			resolve: async function (parent, _, context) {
+				const result = await repository.GetEVSE(parent.id);
+
+				return result;
+			},
+		},
+	}),
+});
+/**
+ * Root
+ *
+ * This object contains all of the property that can be queried in the graph.
+ */
 const RootQuery = new GraphQLObjectType({
 	name: "RootQueryType",
 	fields: {
 		cpo_owners: {
 			type: new GraphQLList(CPO_OWNERS),
-			resolve: async function () {
+			resolve: async function (_, _, context) {
+				const verifier = await AccessTokenVerifier(context.auth);
+
 				const result = await repository.GetCPOOwners();
 
 				return result;
@@ -131,7 +163,7 @@ const RootQuery = new GraphQLObjectType({
 				return result;
 			},
 		},
-		location_favorites: {
+		location_with_favorites: {
 			type: new GraphQLList(LOCATIONS_WITH_FAVORITES),
 			args: {
 				lat: { type: GraphQLFloat },
@@ -139,11 +171,35 @@ const RootQuery = new GraphQLObjectType({
 			},
 			resolve: async function (_, args, context) {
 				// BasicTokenVerifier(context.auth);
+				const verifier = await AccessTokenVerifier(context.auth);
 
-				const result = await repository.GetLocationsWithFavorites({
-					lat: args.lat,
-					lng: args.lng,
-				});
+				const result = await repository.GetLocationsWithFavorites(
+					{
+						lat: args.lat,
+						lng: args.lng,
+					},
+					verifier.id
+				);
+
+				return result;
+			},
+		},
+		favorite_locations: {
+			type: new GraphQLList(FAVORITE_LOCATIONS),
+			args: {
+				lat: { type: GraphQLFloat },
+				lng: { type: GraphQLFloat },
+			},
+			resolve: async function (_, args, context) {
+				const verifier = await AccessTokenVerifier(context.auth);
+
+				const result = await repository.GetFavoriteLocations(
+					{
+						lat: args.lat,
+						lng: args.lng,
+					},
+					verifier.id
+				);
 
 				return result;
 			},
@@ -151,28 +207,72 @@ const RootQuery = new GraphQLObjectType({
 	},
 });
 
+/**
+ * Mutations
+ *
+ * This object contains all of the methods that can be perform in GraphQL
+ */
 const MutationType = new GraphQLObjectType({
 	name: "Mutation",
 	fields: {
 		addToFavoriteLocation: {
 			type: FAVORITE_LOCATION_TYPE,
 			args: {
-				user_id: { type: GraphQLInt },
 				cpo_location_id: { type: GraphQLInt },
 			},
-			resolve: function (parent, args) {
-				const query = `INSERT INTO favorite_merchants (user_id, cpo_location_id) VALUES (?,?)`;
+			resolve: async function (parent, args, context) {
+				const verifier = await AccessTokenVerifier(context.auth);
+
+				if (!verifier)
+					throw new GraphQLError("Unauthorized", {
+						extenstions: { code: 401 },
+					});
+
+				const query = `INSERT INTO favorite_merchants (user_id, cpo_location_id) VALUES (?,?) ON DUPLICATE KEY UPDATE 
+						user_id = VALUES(user_id),
+						cpo_location_id = VALUES(cpo_location_id)`;
 
 				return new Promise((resolve, reject) => {
 					mysql.query(
 						query,
-						[args.user_id, args.cpo_location_id],
+						[verifier.id, args.cpo_location_id],
 						(err, result) => {
 							if (err) {
 								reject(err);
 							}
 							resolve({
-								user_id: args.user_id,
+								user_id: verifier.id,
+								cpo_location_id: args.cpo_location_id,
+							});
+						}
+					);
+				});
+			},
+		},
+		removeFromFavoriteLocation: {
+			type: FAVORITE_LOCATION_TYPE,
+			args: {
+				cpo_location_id: { type: GraphQLInt },
+			},
+			resolve: async function (_, args, context) {
+				const verifier = await AccessTokenVerifier(context.auth);
+
+				if (!verifier)
+					throw new GraphQLError("Unauthorized", { extensions: { code: 401 } });
+
+				const query = `DELETE FROM favorite_merchants WHERE user_id = ? AND cpo_location_id = ?`;
+
+				return new Promise((resolve, reject) => {
+					mysql.query(
+						query,
+						[verifier.id, args.cpo_location_id],
+						(err, result) => {
+							if (err) {
+								reject(err);
+							}
+
+							resolve({
+								user_id: verifier.id,
 								cpo_location_id: args.cpo_location_id,
 							});
 						}
