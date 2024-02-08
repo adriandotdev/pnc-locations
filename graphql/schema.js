@@ -18,6 +18,50 @@ const LocationsRepository = require("../repository/LocationsRepository");
 
 const repository = new LocationsRepository();
 
+const PAYMENT_TYPES = new GraphQLObjectType({
+	name: "PAYMENT_TYPES",
+	fields: () => ({
+		id: { type: GraphQLInt },
+		code: { type: GraphQLString },
+		description: { type: GraphQLString },
+	}),
+});
+
+const EVSE_CAPABILITIES = new GraphQLObjectType({
+	name: "EVSE_CAPABILITIES",
+	fields: () => ({
+		id: { type: GraphQLInt },
+		code: { type: GraphQLString },
+		description: { type: GraphQLString },
+	}),
+});
+
+const LOCATION_FACILITIES = new GraphQLObjectType({
+	name: "LOCATION_FACILITIES",
+	fields: () => ({
+		id: { type: GraphQLInt },
+		code: { type: GraphQLString },
+		description: { type: GraphQLString },
+	}),
+});
+
+const CONNECTOR = new GraphQLObjectType({
+	name: "CONNECTOR",
+	fields: () => ({
+		id: { type: GraphQLInt },
+		evse_uid: { type: GraphQLString },
+		connector_id: { type: GraphQLInt },
+		standard: { type: GraphQLString },
+		format: { type: GraphQLString },
+		max_voltage: { type: GraphQLInt },
+		max_amperage: { type: GraphQLInt },
+		max_electric_power: { type: GraphQLInt },
+		status: { type: GraphQLString },
+		date_created: { type: GraphQLString },
+		date_modified: { type: GraphQLString },
+	}),
+});
+
 const EVSE = new GraphQLObjectType({
 	name: "EVSE",
 	fields: () => ({
@@ -30,6 +74,30 @@ const EVSE = new GraphQLObjectType({
 		current_ws_connection_id: { type: GraphQLString },
 		server_id: { type: GraphQLString },
 		date_created: { type: GraphQLString },
+		connectors: {
+			type: new GraphQLList(CONNECTOR),
+			resolve: async function (parent) {
+				const result = await repository.GetConnectors(parent.uid);
+
+				return result;
+			},
+		},
+		capabilities: {
+			type: new GraphQLList(EVSE_CAPABILITIES),
+			resolve: async function (parent) {
+				const result = await repository.GetEVSECapabilities(parent.uid);
+
+				return result;
+			},
+		},
+		payment_types: {
+			type: new GraphQLList(PAYMENT_TYPES),
+			resolve: async function (parent) {
+				const result = await repository.GetEVSEPaymentTypes(parent.uid);
+
+				return result;
+			},
+		},
 	}),
 });
 
@@ -48,8 +116,16 @@ const LOCATIONS = new GraphQLObjectType({
 		distance: { type: GraphQLFloat },
 		evses: {
 			type: new GraphQLList(EVSE),
-			resolve: async function (parent, _, context) {
+			resolve: async function (parent) {
 				const result = await repository.GetEVSE(parent.id);
+
+				return result;
+			},
+		},
+		facilities: {
+			type: new GraphQLList(LOCATION_FACILITIES),
+			resolve: async function (parent) {
+				const result = await repository.GetLocationFacilities(parent.id);
 
 				return result;
 			},
@@ -179,6 +255,51 @@ const RootQuery = new GraphQLObjectType({
 						lng: args.lng,
 					},
 					verifier.id
+				);
+
+				return result;
+			},
+		},
+		filter_locations: {
+			type: new GraphQLList(LOCATIONS),
+			args: {
+				lat: { type: GraphQLFloat },
+				lng: { type: GraphQLFloat },
+				facilities: { type: GraphQLList(GraphQLString) },
+				capabilities: { type: GraphQLList(GraphQLString) },
+				payment_types: { type: GraphQLList(GraphQLString) },
+			},
+			resolve: async function (_, args, context) {
+				let facilities = "";
+				let capabilities = "";
+				let paymentTypes = "";
+
+				args.facilities.forEach((facility) => {
+					facilities += `'${facility}', `;
+				});
+
+				facilities = facilities.slice(0, facilities.length - 2);
+
+				args.capabilities.forEach((capability) => {
+					capabilities += `'${capability}', `;
+				});
+
+				capabilities = capabilities.slice(0, capabilities.length - 2);
+
+				args.payment_types.forEach((paymentType) => {
+					paymentTypes += `'${paymentType}', `;
+				});
+
+				paymentTypes = paymentTypes.slice(0, paymentTypes.length - 2);
+
+				const result = await repository.FilterLocations(
+					{
+						lat: args.lat,
+						lng: args.lng,
+					},
+					facilities,
+					capabilities,
+					paymentTypes
 				);
 
 				return result;
