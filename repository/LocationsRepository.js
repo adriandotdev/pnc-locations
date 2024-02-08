@@ -173,14 +173,23 @@ module.exports = class LocationsRepository {
 		});
 	}
 
-	FilterLocations(location, facilities, capabilities, payment_types) {
-		const query = `SELECT *,
-			(SELECT (6371 * 2 * ASIN(SQRT(
+	FilterLocations(
+		location,
+		facilities,
+		capabilities,
+		payment_types,
+		parking_types,
+		parking_restrictions,
+		connector_types,
+		power_types
+	) {
+		const query = `select *,
+		(SELECT (6371 * 2 * ASIN(SQRT(
 				POWER(SIN((${location.lat} - ABS(address_lat)) * PI() / 180 / 2), 2) +
 				COS(${location.lat} * PI() / 180) * COS(ABS(address_lat) * PI() / 180) *
 				POWER(SIN((${location.lng} - address_lng) * PI() / 180 / 2), 2)
 				)))) AS distance
-		FROM cpo_locations
+		from cpo_locations
 		INNER JOIN cpo_location_facilities
 		ON cpo_locations.id = cpo_location_facilities.cpo_location_id
 		INNER JOIN facilities
@@ -191,13 +200,40 @@ module.exports = class LocationsRepository {
 		ON evse.uid = evse_capabilities.evse_uid
 		INNER JOIN capabilities
 		ON evse_capabilities.capability_id = capabilities.id
-		INNER JOIN evse_payment_types
+		inner join evse_payment_types
 		ON evse.uid = evse_payment_types.evse_uid
 		INNER JOIN payment_types
 		ON evse_payment_types.payment_type_id = payment_types.id
+		
+		INNER JOIN cpo_location_parking_types
+		ON cpo_locations.id = cpo_location_parking_types.cpo_location_id
+		INNER JOIN parking_types
+		ON cpo_location_parking_types.parking_type_id = parking_types.id
+		
+		INNER JOIN cpo_location_parking_restrictions
+		ON cpo_locations.id = cpo_location_parking_restrictions.cpo_location_id
+		INNER JOIN parking_restrictions
+		ON cpo_location_parking_restrictions.cpo_location_id = parking_restrictions.id
+		
+		INNER JOIN evse_connectors
+		ON evse.uid = evse_connectors.evse_uid
+		INNER JOIN evse_connector_types
+		ON evse_connectors.id = evse_connector_types.connector_id
+		INNER JOIN connector_types
+		ON evse_connector_types.connector_type_id = connector_types.id
+		
+		INNER JOIN evse_connector_power_types
+		ON evse_connector_power_types.connector_id = evse_connectors.id
+		INNER JOIN power_types
+		ON evse_connector_power_types.power_type_id = power_types.id
+		
 		WHERE facilities.code IN (${facilities})
 		AND capabilities.code IN (${capabilities})
-		AND payment_types.code IN (${payment_types})`;
+		AND payment_types.code IN (${payment_types})
+		AND parking_types.code IN (${parking_types})
+		AND parking_restrictions.code IN (${parking_restrictions})
+		AND connector_types.code IN (${connector_types})
+		AND power_types.code IN (${power_types})`;
 
 		return new Promise((resolve, reject) => {
 			mysql.query(query, (err, result) => {

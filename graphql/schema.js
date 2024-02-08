@@ -268,11 +268,19 @@ const RootQuery = new GraphQLObjectType({
 				facilities: { type: GraphQLList(GraphQLString) },
 				capabilities: { type: GraphQLList(GraphQLString) },
 				payment_types: { type: GraphQLList(GraphQLString) },
+				parking_types: { type: GraphQLList(GraphQLString) },
+				parking_restrictions: { type: GraphQLList(GraphQLString) },
+				connector_types: { type: GraphQLList(GraphQLString) },
+				power_types: { type: GraphQLList(GraphQLString) },
 			},
 			resolve: async function (_, args, context) {
 				let facilities = "";
 				let capabilities = "";
 				let paymentTypes = "";
+				let parkingTypes = "";
+				let parkingRestrictions = "";
+				let connectorTypes = "";
+				let powerTypes = "";
 
 				args.facilities.forEach((facility) => {
 					facilities += `'${facility}', `;
@@ -292,6 +300,33 @@ const RootQuery = new GraphQLObjectType({
 
 				paymentTypes = paymentTypes.slice(0, paymentTypes.length - 2);
 
+				args.parking_types.forEach((parkingType) => {
+					parkingTypes += `'${parkingType}', `;
+				});
+
+				parkingTypes = parkingTypes.slice(0, parkingTypes.length - 2);
+
+				args.parking_restrictions.forEach((parkingRestriction) => {
+					parkingRestrictions += `'${parkingRestriction}', `;
+				});
+
+				parkingRestrictions = parkingRestrictions.slice(
+					0,
+					parkingRestrictions.length - 2
+				);
+
+				args.connector_types.forEach((connectorType) => {
+					connectorTypes += `'${connectorType}', `;
+				});
+
+				connectorTypes = connectorTypes.slice(0, connectorTypes.length - 2);
+
+				args.power_types.forEach((powerType) => {
+					powerTypes += `'${powerType}', `;
+				});
+
+				powerTypes = powerTypes.slice(0, powerTypes.length - 2);
+
 				const result = await repository.FilterLocations(
 					{
 						lat: args.lat,
@@ -299,7 +334,11 @@ const RootQuery = new GraphQLObjectType({
 					},
 					facilities,
 					capabilities,
-					paymentTypes
+					paymentTypes,
+					parkingTypes,
+					parkingRestrictions,
+					connectorTypes,
+					powerTypes
 				);
 
 				return result;
