@@ -18,6 +18,7 @@ const LocationsRepository = require("../repository/LocationsRepository");
 
 const repository = new LocationsRepository();
 
+/** EVSE Payment Types */
 const PAYMENT_TYPES = new GraphQLObjectType({
 	name: "PAYMENT_TYPES",
 	fields: () => ({
@@ -282,31 +283,31 @@ const RootQuery = new GraphQLObjectType({
 				let connectorTypes = "";
 				let powerTypes = "";
 
-				args.facilities.forEach((facility) => {
+				args.facilities?.forEach((facility) => {
 					facilities += `'${facility}', `;
 				});
 
 				facilities = facilities.slice(0, facilities.length - 2);
 
-				args.capabilities.forEach((capability) => {
+				args.capabilities?.forEach((capability) => {
 					capabilities += `'${capability}', `;
 				});
 
 				capabilities = capabilities.slice(0, capabilities.length - 2);
 
-				args.payment_types.forEach((paymentType) => {
+				args.payment_types?.forEach((paymentType) => {
 					paymentTypes += `'${paymentType}', `;
 				});
 
 				paymentTypes = paymentTypes.slice(0, paymentTypes.length - 2);
 
-				args.parking_types.forEach((parkingType) => {
+				args.parking_types?.forEach((parkingType) => {
 					parkingTypes += `'${parkingType}', `;
 				});
 
 				parkingTypes = parkingTypes.slice(0, parkingTypes.length - 2);
 
-				args.parking_restrictions.forEach((parkingRestriction) => {
+				args.parking_restrictions?.forEach((parkingRestriction) => {
 					parkingRestrictions += `'${parkingRestriction}', `;
 				});
 
@@ -315,13 +316,13 @@ const RootQuery = new GraphQLObjectType({
 					parkingRestrictions.length - 2
 				);
 
-				args.connector_types.forEach((connectorType) => {
+				args.connector_types?.forEach((connectorType) => {
 					connectorTypes += `'${connectorType}', `;
 				});
 
 				connectorTypes = connectorTypes.slice(0, connectorTypes.length - 2);
 
-				args.power_types.forEach((powerType) => {
+				args.power_types?.forEach((powerType) => {
 					powerTypes += `'${powerType}', `;
 				});
 
