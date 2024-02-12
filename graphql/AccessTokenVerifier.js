@@ -4,6 +4,10 @@ const Crypto = require("../utils/Crypto");
 const AccountRepository = require("../repository/AuthenticationRepository");
 const JsonWebToken = require("../utils/JsonWebToken");
 const jwt = require("jsonwebtoken");
+const {
+	HttpUnauthorized,
+	HttpInternalServerError,
+} = require("../utils/HttpError");
 const repository = new AccountRepository();
 
 const AccessTokenVerifier = async (accessToken) => {
@@ -35,17 +39,11 @@ const AccessTokenVerifier = async (accessToken) => {
 			(err, decode) => {
 				if (err) {
 					if (err instanceof jwt.TokenExpiredError) {
-						throw new GraphQLError("Token Expired", {
-							extensions: { code: 401 },
-						});
+						throw new HttpUnauthorized("Unauthorized", []);
 					} else if (err instanceof jwt.JsonWebTokenError) {
-						throw new GraphQLError("Invalid Token", {
-							extensions: { code: 401 },
-						});
+						throw new HttpUnauthorized("Unauthorized", []);
 					} else {
-						throw new GraphQLError("Internal Server Error", {
-							extensions: { code: 500 },
-						});
+						throw new HttpUnauthorized("Unauthorized", []);
 					}
 				}
 
@@ -56,9 +54,7 @@ const AccessTokenVerifier = async (accessToken) => {
 					decode.usr !== "serv"
 				)
 					if (err !== null) {
-						throw new GraphQLError("Unauthorized", {
-							extensions: { code: 401 },
-						});
+						throw new HttpUnauthorized("Unauthorized", []);
 					}
 
 				data = {
@@ -85,14 +81,10 @@ const AccessTokenVerifier = async (accessToken) => {
 		});
 
 		if (err !== null) {
-			throw new GraphQLError("Unauthorized", {
-				extensions: { code: 401 },
-			});
+			throw new HttpUnauthorized("Unauthorized", []);
 		}
 
-		throw new GraphQLError("INTERNAL_SERVER_ERROR", {
-			extensions: { code: 401 },
-		});
+		throw new HttpInternalServerError("Internal Server Error", []);
 	}
 };
 

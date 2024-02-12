@@ -26,4 +26,8 @@ pool.on("release", function (connection) {
 	logger.info("Connection %d released", connection.threadId);
 });
 
+pool.on("end", (connection) => {
+	logger.info("MySQL connection %d closed", connection.threadId);
+});
+
 module.exports = pool;
