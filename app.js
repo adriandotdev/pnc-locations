@@ -29,13 +29,19 @@ require("./api/merchants.api")(app);
 require("./api/favorite_merchants.api")(app);
 
 app.use(
-	"/graphql",
+	"/booking_merchants/graphql",
 	graphqlHTTP((req, res) => {
 		return {
 			schema,
 			graphiql: true,
 			context: {
 				auth: req.headers.authorization?.split(" ")[1],
+			},
+			customFormatErrorFn: (error) => {
+				return {
+					message: error.originalError.message,
+					status: error.originalError.status,
+				};
 			},
 		};
 	})

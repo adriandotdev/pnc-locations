@@ -18,6 +18,8 @@ const LocationsRepository = require("../repository/LocationsRepository");
 
 const repository = new LocationsRepository();
 
+const logger = require("../config/winston");
+
 /** EVSE Payment Types */
 const PAYMENT_TYPES = new GraphQLObjectType({
 	name: "PAYMENT_TYPES",
@@ -275,6 +277,10 @@ const RootQuery = new GraphQLObjectType({
 				power_types: { type: GraphQLList(GraphQLString) },
 			},
 			resolve: async function (_, args, context) {
+				logger.info({ GRAPHQL_FILTER_LOCATIONS: { args, context } });
+
+				BasicTokenVerifier(context.auth);
+
 				let facilities = "";
 				let capabilities = "";
 				let paymentTypes = "";
@@ -341,6 +347,100 @@ const RootQuery = new GraphQLObjectType({
 					connectorTypes,
 					powerTypes
 				);
+
+				logger.info({ GRAPHQL_FILTER_LOCATIONS_RESPONSE: { result } });
+
+				return result;
+			},
+		},
+
+		filter_locations_with_favorites: {
+			type: new GraphQLList(LOCATIONS_WITH_FAVORITES),
+			args: {
+				lat: { type: GraphQLFloat },
+				lng: { type: GraphQLFloat },
+				facilities: { type: GraphQLList(GraphQLString) },
+				capabilities: { type: GraphQLList(GraphQLString) },
+				payment_types: { type: GraphQLList(GraphQLString) },
+				parking_types: { type: GraphQLList(GraphQLString) },
+				parking_restrictions: { type: GraphQLList(GraphQLString) },
+				connector_types: { type: GraphQLList(GraphQLString) },
+				power_types: { type: GraphQLList(GraphQLString) },
+			},
+			resolve: async function (_, args, context) {
+				const verifier = await AccessTokenVerifier(context.auth);
+
+				logger.info({ GRAPHQL_FILTER_LOCATIONS: { args, context } });
+
+				let facilities = "";
+				let capabilities = "";
+				let paymentTypes = "";
+				let parkingTypes = "";
+				let parkingRestrictions = "";
+				let connectorTypes = "";
+				let powerTypes = "";
+
+				args.facilities?.forEach((facility) => {
+					facilities += `'${facility}', `;
+				});
+
+				facilities = facilities.slice(0, facilities.length - 2);
+
+				args.capabilities?.forEach((capability) => {
+					capabilities += `'${capability}', `;
+				});
+
+				capabilities = capabilities.slice(0, capabilities.length - 2);
+
+				args.payment_types?.forEach((paymentType) => {
+					paymentTypes += `'${paymentType}', `;
+				});
+
+				paymentTypes = paymentTypes.slice(0, paymentTypes.length - 2);
+
+				args.parking_types?.forEach((parkingType) => {
+					parkingTypes += `'${parkingType}', `;
+				});
+
+				parkingTypes = parkingTypes.slice(0, parkingTypes.length - 2);
+
+				args.parking_restrictions?.forEach((parkingRestriction) => {
+					parkingRestrictions += `'${parkingRestriction}', `;
+				});
+
+				parkingRestrictions = parkingRestrictions.slice(
+					0,
+					parkingRestrictions.length - 2
+				);
+
+				args.connector_types?.forEach((connectorType) => {
+					connectorTypes += `'${connectorType}', `;
+				});
+
+				connectorTypes = connectorTypes.slice(0, connectorTypes.length - 2);
+
+				args.power_types?.forEach((powerType) => {
+					powerTypes += `'${powerType}', `;
+				});
+
+				powerTypes = powerTypes.slice(0, powerTypes.length - 2);
+
+				const result = await repository.FilterLocationsWithFavorites(
+					{
+						lat: args.lat,
+						lng: args.lng,
+					},
+					facilities,
+					capabilities,
+					paymentTypes,
+					parkingTypes,
+					parkingRestrictions,
+					connectorTypes,
+					powerTypes,
+					verifier.id
+				);
+
+				logger.info({ GRAPHQL_FILTER_LOCATIONS_RESPONSE: { result } });
 
 				return result;
 			},
