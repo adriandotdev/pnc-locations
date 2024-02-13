@@ -39,9 +39,9 @@ const AccessTokenVerifier = async (accessToken) => {
 			(err, decode) => {
 				if (err) {
 					if (err instanceof jwt.TokenExpiredError) {
-						throw new HttpUnauthorized("Unauthorized", []);
+						throw new HttpUnauthorized("Token Expired", []);
 					} else if (err instanceof jwt.JsonWebTokenError) {
-						throw new HttpUnauthorized("Unauthorized", []);
+						throw new HttpUnauthorized("Invalid Token", []);
 					} else {
 						throw new HttpUnauthorized("Unauthorized", []);
 					}
@@ -54,7 +54,7 @@ const AccessTokenVerifier = async (accessToken) => {
 					decode.usr !== "serv"
 				)
 					if (err !== null) {
-						throw new HttpUnauthorized("Unauthorized", []);
+						throw new HttpUnauthorized("Invalid Token", []);
 					}
 
 				data = {
@@ -81,7 +81,7 @@ const AccessTokenVerifier = async (accessToken) => {
 		});
 
 		if (err !== null) {
-			throw new HttpUnauthorized("Unauthorized", []);
+			throw new HttpUnauthorized(err.message, []);
 		}
 
 		throw new HttpInternalServerError("Internal Server Error", []);
