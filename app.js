@@ -15,7 +15,7 @@ const schema = require("./graphql/schema");
 app.use(
 	cors({
 		origin: "*",
-		methods: ["OPTIONS", "GET", "POST", "PUT", "DELETE"],
+		methods: ["OPTIONS", "GET", "POST", "PUT", "DELETE", "PATCH"],
 	})
 );
 app.use(express.urlencoded({ extended: false })); // To parse the urlencoded : x-www-form-urlencoded
@@ -39,8 +39,12 @@ app.use(
 			},
 			customFormatErrorFn: (error) => {
 				return {
-					message: error.originalError.message,
-					status: error.originalError.status,
+					message: error.originalError.message
+						? error.originalError.message
+						: "Internal Server Error",
+					status: error.originalError.status
+						? error.originalError.message
+						: 500,
 				};
 			},
 		};
