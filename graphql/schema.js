@@ -139,6 +139,7 @@ const FAVORITE_LOCATION_TYPE = new GraphQLObjectType({
 	fields: () => ({
 		user_id: { type: GraphQLInt },
 		cpo_location_id: { type: GraphQLInt },
+		status: { type: GraphQLInt },
 	}),
 });
 
@@ -554,6 +555,7 @@ const MutationType = new GraphQLObjectType({
 							resolve({
 								user_id: verifier.id,
 								cpo_location_id: args.cpo_location_id,
+								status: 200,
 							});
 						}
 					);
@@ -585,6 +587,7 @@ const MutationType = new GraphQLObjectType({
 							resolve({
 								user_id: verifier.id,
 								cpo_location_id: args.cpo_location_id,
+								status: 200,
 							});
 						}
 					);

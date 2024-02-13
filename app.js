@@ -42,9 +42,7 @@ app.use(
 					message: error.originalError.message
 						? error.originalError.message
 						: "Internal Server Error",
-					status: error.originalError.status
-						? error.originalError.message
-						: 500,
+					status: error.originalError.status ? error.originalError.status : 500,
 				};
 			},
 		};
