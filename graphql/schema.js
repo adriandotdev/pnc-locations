@@ -20,33 +20,13 @@ const repository = new LocationsRepository();
 
 const logger = require("../config/winston");
 
-/** EVSE Payment Types */
-const PAYMENT_TYPES = new GraphQLObjectType({
-	name: "PAYMENT_TYPES",
-	fields: () => ({
-		id: { type: GraphQLInt },
-		code: { type: GraphQLString },
-		description: { type: GraphQLString },
-	}),
-});
-
-const EVSE_CAPABILITIES = new GraphQLObjectType({
-	name: "EVSE_CAPABILITIES",
-	fields: () => ({
-		id: { type: GraphQLInt },
-		code: { type: GraphQLString },
-		description: { type: GraphQLString },
-	}),
-});
-
-const LOCATION_FACILITIES = new GraphQLObjectType({
-	name: "LOCATION_FACILITIES",
-	fields: () => ({
-		id: { type: GraphQLInt },
-		code: { type: GraphQLString },
-		description: { type: GraphQLString },
-	}),
-});
+const {
+	EVSE_CAPABILITIES,
+	EVSE_PAYMENT_TYPES,
+	LOCATION_FACILITIES,
+	LOCATION_PARKING_RESTRICTIONS,
+	LOCATION_PARKING_TYPES,
+} = require("./defaults");
 
 const CONNECTOR = new GraphQLObjectType({
 	name: "CONNECTOR",
@@ -94,7 +74,7 @@ const EVSE = new GraphQLObjectType({
 			},
 		},
 		payment_types: {
-			type: new GraphQLList(PAYMENT_TYPES),
+			type: new GraphQLList(EVSE_PAYMENT_TYPES),
 			resolve: async function (parent) {
 				const result = await repository.GetEVSEPaymentTypes(parent.uid);
 
@@ -129,6 +109,24 @@ const LOCATIONS = new GraphQLObjectType({
 			type: new GraphQLList(LOCATION_FACILITIES),
 			resolve: async function (parent) {
 				const result = await repository.GetLocationFacilities(parent.id);
+
+				return result;
+			},
+		},
+		parking_restrictions: {
+			type: new GraphQLList(LOCATION_PARKING_RESTRICTIONS),
+			resolve: async function (parent) {
+				const result = await repository.GetLocationParkingRestrictions(
+					parent.id
+				);
+
+				return result;
+			},
+		},
+		parking_types: {
+			type: new GraphQLList(LOCATION_PARKING_TYPES),
+			resolve: async function (parent) {
+				const result = await repository.GetLocationParkingTypes(parent.id);
 
 				return result;
 			},
@@ -174,8 +172,34 @@ const LOCATIONS_WITH_FAVORITES = new GraphQLObjectType({
 		favorite: { type: GraphQLString },
 		evses: {
 			type: new GraphQLList(EVSE),
-			resolve: async function (parent, _, context) {
+			resolve: async function (parent) {
 				const result = await repository.GetEVSE(parent.id);
+
+				return result;
+			},
+		},
+		facilities: {
+			type: new GraphQLList(LOCATION_FACILITIES),
+			resolve: async function (parent) {
+				const result = await repository.GetLocationFacilities(parent.id);
+
+				return result;
+			},
+		},
+		parking_restrictions: {
+			type: new GraphQLList(LOCATION_PARKING_RESTRICTIONS),
+			resolve: async function (parent) {
+				const result = await repository.GetLocationParkingRestrictions(
+					parent.id
+				);
+
+				return result;
+			},
+		},
+		parking_types: {
+			type: new GraphQLList(LOCATION_PARKING_TYPES),
+			resolve: async function (parent) {
+				const result = await repository.GetLocationParkingTypes(parent.id);
 
 				return result;
 			},
@@ -199,8 +223,34 @@ const FAVORITE_LOCATIONS = new GraphQLObjectType({
 		favorite: { type: GraphQLString, defaultValue: "true" },
 		evses: {
 			type: new GraphQLList(EVSE),
-			resolve: async function (parent, _, context) {
+			resolve: async function (parent) {
 				const result = await repository.GetEVSE(parent.id);
+
+				return result;
+			},
+		},
+		facilities: {
+			type: new GraphQLList(LOCATION_FACILITIES),
+			resolve: async function (parent) {
+				const result = await repository.GetLocationFacilities(parent.id);
+
+				return result;
+			},
+		},
+		parking_restrictions: {
+			type: new GraphQLList(LOCATION_PARKING_RESTRICTIONS),
+			resolve: async function (parent) {
+				const result = await repository.GetLocationParkingRestrictions(
+					parent.id
+				);
+
+				return result;
+			},
+		},
+		parking_types: {
+			type: new GraphQLList(LOCATION_PARKING_TYPES),
+			resolve: async function (parent) {
+				const result = await repository.GetLocationParkingTypes(parent.id);
 
 				return result;
 			},
@@ -218,7 +268,7 @@ const RootQuery = new GraphQLObjectType({
 		cpo_owners: {
 			type: new GraphQLList(CPO_OWNERS),
 			resolve: async function (_, _, context) {
-				const verifier = await AccessTokenVerifier(context.auth);
+				await AccessTokenVerifier(context.auth);
 
 				const result = await repository.GetCPOOwners();
 

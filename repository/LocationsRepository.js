@@ -453,4 +453,42 @@ module.exports = class LocationsRepository {
 			});
 		});
 	}
+
+	GetLocationParkingRestrictions(locationID) {
+		const query = `SELECT pr.* FROM cpo_locations AS cl
+		INNER JOIN cpo_location_parking_restrictions AS clpr
+		ON cl.id = clpr.cpo_location_id
+		INNER JOIN parking_restrictions AS pr
+		ON clpr.parking_restriction_code_id = pr.id 
+		WHERE clpr.cpo_location_id = ?`;
+
+		return new Promise((resolve, reject) => {
+			mysql.query(query, [locationID], (err, result) => {
+				if (err) {
+					reject(err);
+				}
+
+				resolve(result);
+			});
+		});
+	}
+
+	GetLocationParkingTypes(locationID) {
+		const query = `SELECT pt.* FROM cpo_locations AS cl
+		INNER JOIN cpo_location_parking_types AS clpt
+		ON cl.id = clpt.cpo_location_id
+		INNER JOIN parking_types AS pt
+		ON clpt.parking_type_id = pt.id
+		WHERE clpt.cpo_location_id = ?`;
+
+		return new Promise((resolve, reject) => {
+			mysql.query(query, [locationID], (err, result) => {
+				if (err) {
+					reject(err);
+				}
+
+				resolve(result);
+			});
+		});
+	}
 };
