@@ -15,8 +15,10 @@ const BasicTokenVerifier = require("./BasicTokenVerifier");
 const AccessTokenVerifier = require("./AccessTokenVerifier");
 
 const LocationsRepository = require("../repository/LocationsRepository");
+const FiltersRepository = require("../repository/FiltersRepository");
 
 const repository = new LocationsRepository();
+const filtersRepository = new FiltersRepository();
 
 const logger = require("../config/winston");
 
@@ -26,6 +28,7 @@ const {
 	LOCATION_FACILITIES,
 	LOCATION_PARKING_RESTRICTIONS,
 	LOCATION_PARKING_TYPES,
+	DEFAULT_LIST,
 } = require("./defaults");
 
 const CONNECTOR = new GraphQLObjectType({
@@ -512,6 +515,76 @@ const RootQuery = new GraphQLObjectType({
 					},
 					verifier.id
 				);
+
+				return result;
+			},
+		},
+		facilities: {
+			type: new GraphQLList(DEFAULT_LIST),
+			resolve: async function (_, _, context) {
+				BasicTokenVerifier(context.auth);
+
+				const result = await filtersRepository.GetFacilities();
+
+				return result;
+			},
+		},
+		capabilities: {
+			type: new GraphQLList(DEFAULT_LIST),
+			resolve: async function (_, _, context) {
+				BasicTokenVerifier(context.auth);
+
+				const result = await filtersRepository.GetCapabilities();
+
+				return result;
+			},
+		},
+		payment_types: {
+			type: new GraphQLList(DEFAULT_LIST),
+			resolve: async function (_, _, context) {
+				BasicTokenVerifier(context.auth);
+
+				const result = await filtersRepository.GetPaymentTypes();
+
+				return result;
+			},
+		},
+		parking_types: {
+			type: new GraphQLList(DEFAULT_LIST),
+			resolve: async function (_, _, context) {
+				BasicTokenVerifier(context.auth);
+
+				const result = await filtersRepository.GetParkingTypes();
+
+				return result;
+			},
+		},
+		parking_restrictions: {
+			type: new GraphQLList(DEFAULT_LIST),
+			resolve: async function (_, _, context) {
+				BasicTokenVerifier(context.auth);
+
+				const result = await filtersRepository.GetParkingRestrictions();
+
+				return result;
+			},
+		},
+		connector_types: {
+			type: new GraphQLList(DEFAULT_LIST),
+			resolve: async function (_, _, context) {
+				BasicTokenVerifier(context.auth);
+
+				const result = await filtersRepository.GetConnectorTypes();
+
+				return result;
+			},
+		},
+		power_types: {
+			type: new GraphQLList(DEFAULT_LIST),
+			resolve: async function (_, _, context) {
+				BasicTokenVerifier(context.auth);
+
+				const result = await filtersRepository.GetPowerTypes();
 
 				return result;
 			},

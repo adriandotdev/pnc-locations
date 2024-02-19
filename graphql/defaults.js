@@ -54,7 +54,17 @@ const LOCATION_PARKING_TYPES = new GraphQLObjectType({
 	}),
 });
 
+const DEFAULT_LIST = new GraphQLObjectType({
+	name: "DEFAULT_LIST",
+	fields: () => ({
+		id: { type: GraphQLInt },
+		code: { type: GraphQLString },
+		description: { type: GraphQLString },
+	}),
+});
+
 module.exports = {
+	DEFAULT_LIST,
 	EVSE_PAYMENT_TYPES,
 	EVSE_CAPABILITIES,
 	LOCATION_FACILITIES,
