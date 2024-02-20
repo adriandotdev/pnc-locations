@@ -203,7 +203,7 @@ module.exports = class LocationsRepository {
 		connector_types,
 		power_types
 	) {
-		const query = `SELECT cpo_locations.*,
+		const query = `SELECT DISTINCT cpo_locations.*,
 		(SELECT (6371 * 2 * ASIN(SQRT(
 				POWER(SIN((${location.lat} - ABS(address_lat)) * PI() / 180 / 2), 2) +
 				COS(${location.lat} * PI() / 180) * COS(ABS(address_lat) * PI() / 180) *
