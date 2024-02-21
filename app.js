@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const helmet = require("helmet");
 const bodyParser = require("body-parser");
 const app = express();
 
@@ -12,6 +13,7 @@ const { graphqlHTTP } = require("express-graphql");
 const schema = require("./graphql/schema");
 
 // Global Middlewares
+app.use(helmet());
 app.use(
 	cors({
 		origin: "*",
