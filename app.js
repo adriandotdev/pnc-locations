@@ -16,7 +16,10 @@ const schema = require("./graphql/schema");
 app.use(helmet());
 app.use(
 	cors({
-		origin: "*",
+		origin: [
+			"http://localhost:3000",
+			"https://v2-stg-parkncharge.sysnetph.com",
+		],
 		methods: ["OPTIONS", "GET", "POST", "PUT", "DELETE", "PATCH"],
 	})
 );
