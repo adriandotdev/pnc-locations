@@ -322,13 +322,13 @@ const RootQuery = new GraphQLObjectType({
 			args: {
 				lat: { type: GraphQLFloat },
 				lng: { type: GraphQLFloat },
-				facilities: { type: GraphQLList(GraphQLString) },
-				capabilities: { type: GraphQLList(GraphQLString) },
-				payment_types: { type: GraphQLList(GraphQLString) },
-				parking_types: { type: GraphQLList(GraphQLString) },
-				parking_restrictions: { type: GraphQLList(GraphQLString) },
-				connector_types: { type: GraphQLList(GraphQLString) },
-				power_types: { type: GraphQLList(GraphQLString) },
+				facilities: { type: new GraphQLList(GraphQLString) },
+				capabilities: { type: new GraphQLList(GraphQLString) },
+				payment_types: { type: new GraphQLList(GraphQLString) },
+				parking_types: { type: new GraphQLList(GraphQLString) },
+				parking_restrictions: { type: new GraphQLList(GraphQLString) },
+				connector_types: { type: new GraphQLList(GraphQLString) },
+				power_types: { type: new GraphQLList(GraphQLString) },
 			},
 			resolve: async function (_, args, context) {
 				logger.info({ GRAPHQL_FILTER_LOCATIONS: { args, context } });
@@ -413,13 +413,13 @@ const RootQuery = new GraphQLObjectType({
 			args: {
 				lat: { type: GraphQLFloat },
 				lng: { type: GraphQLFloat },
-				facilities: { type: GraphQLList(GraphQLString) },
-				capabilities: { type: GraphQLList(GraphQLString) },
-				payment_types: { type: GraphQLList(GraphQLString) },
-				parking_types: { type: GraphQLList(GraphQLString) },
-				parking_restrictions: { type: GraphQLList(GraphQLString) },
-				connector_types: { type: GraphQLList(GraphQLString) },
-				power_types: { type: GraphQLList(GraphQLString) },
+				facilities: { type: new GraphQLList(GraphQLString) },
+				capabilities: { type: new GraphQLList(GraphQLString) },
+				payment_types: { type: new GraphQLList(GraphQLString) },
+				parking_types: { type: new GraphQLList(GraphQLString) },
+				parking_restrictions: { type: new GraphQLList(GraphQLString) },
+				connector_types: { type: new GraphQLList(GraphQLString) },
+				power_types: { type: new GraphQLList(GraphQLString) },
 			},
 			resolve: async function (_, args, context) {
 				const verifier = await AccessTokenVerifier(context.auth);
