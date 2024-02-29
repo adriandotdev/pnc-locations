@@ -1,11 +1,12 @@
 require("dotenv").config();
 const { GraphQLError } = require("graphql");
 
-const JsonWebToken = require("../utils/JsonWebToken");
-const jwt = require("jsonwebtoken");
 const logger = require("../config/winston");
+const AccountRepository = require("../repository/AccountRepository");
 
-module.exports = BasicTokenVerifier = (auth) => {
+const repository = new AccountRepository();
+
+module.exports = BasicTokenVerifier = async (auth) => {
 	logger.info({
 		BASIC_TOKEN_VERIFIER_MIDDLEWARE: {
 			token: auth,
@@ -13,58 +14,36 @@ module.exports = BasicTokenVerifier = (auth) => {
 	});
 
 	try {
-		if (!auth)
-			throw new GraphQLError("Unauthorized", {
-				extensions: { code: "FORBIDDEN" },
-			});
+		if (!auth) return false;
 
-		JsonWebToken.Verify(auth, process.env.PARKNCHARGE_SECRET_KEY);
+		const securityType = auth.split(" ")[0];
+		const token = auth.split(" ")[1];
+
+		if (securityType !== "Basic") return false;
+
+		const decodedToken = new Buffer.from(token, "base64").toString().split(":");
+
+		const username = decodedToken[0];
+		const password = decodedToken[1];
+
+		const result = await repository.VerifyBasicToken(username, password);
+
+		const status = result[0][0].STATUS;
+
+		if (status === "INVALID_BASIC_TOKEN") return false;
 
 		logger.info({
-			BASIC_TOKEN_VERIFIER_MIDDLEWARE: {
-				message: "Valid Token",
-			},
+			BASIC_TOKEN_VERIFIER_MIDDLEWARE_SUCCESS: { message: "SUCCESS" },
 		});
 
 		return true;
 	} catch (err) {
-		if (err instanceof jwt.JsonWebTokenError) {
-			logger.error({
-				BASIC_TOKEN_VERIFIER_MIDDLEWARE_ERROR: {
-					message: "Invalid Token",
-				},
-			});
-			throw new GraphQLError("Unauthorized", {
-				extensions: { code: "FORBIDDEN" },
-			});
-		} else if (err instanceof jwt.TokenExpiredError) {
-			logger.error({
-				BASIC_TOKEN_VERIFIER_MIDDLEWARE_ERROR: {
-					message: "Token Expired",
-				},
-			});
-			throw new GraphQLError("Unauthorized", {
-				extensions: { code: "FORBIDDEN" },
-			});
-		} else if (err !== null) {
-			logger.error({
-				BASIC_TOKEN_VERIFIER_MIDDLEWARE_ERROR: {
-					message: err.message,
-				},
-			});
-			throw new GraphQLError("Unauthorized", {
-				extensions: { code: "FORBIDDEN" },
-			});
-		} else {
-			logger.error({
-				BASIC_TOKEN_VERIFIER_MIDDLEWARE_ERROR: {
-					message: "Internal Server Error",
-				},
-			});
+		logger.error({
+			BASIC_TOKEN_VERIFIER_MIDDLEWARE_ERROR: {
+				message: err.message,
+			},
+		});
 
-			throw new GraphQLError("Unauthorized", {
-				extensions: { code: "FORBIDDEN" },
-			});
-		}
+		return err;
 	}
 };

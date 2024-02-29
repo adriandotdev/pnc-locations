@@ -40,7 +40,7 @@ app.use(
 			schema,
 			graphiql: true,
 			context: {
-				auth: req.headers.authorization?.split(" ")[1],
+				auth: req.headers.authorization,
 			},
 			customFormatErrorFn: (error) => {
 				return {

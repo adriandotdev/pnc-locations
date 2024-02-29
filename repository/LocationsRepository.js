@@ -155,8 +155,8 @@ module.exports = class LocationsRepository {
                     POWER(SIN((${location.lng} - address_lng) * PI() / 180 / 2), 2)
                     )) ) AS distance) AS distance,
                     
-                (CASE WHEN id IN (SELECT cpo_location_id FROM favorite_merchants) AND ${user_id} IN (SELECT user_id FROM favorite_merchants)
-                THEN 'true' ELSE 'false' end ) AS favorite
+				(CASE WHEN EXISTS (SELECT 1 FROM favorite_merchants WHERE cpo_location_id = cpo_locations.id AND user_id = ${user_id})
+					THEN 'true' ELSE 'false' END) AS favorite
         FROM cpo_locations`;
 
 		return new Promise((resolve, reject) => {

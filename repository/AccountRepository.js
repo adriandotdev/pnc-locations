@@ -2,6 +2,20 @@ const mysql = require("../database/mysql");
 
 // Repository is an object that will interact in the database.
 module.exports = class AuthenticationRepository {
+	VerifyBasicToken(username, password) {
+		const query = `call WEB_USER_VERIFY_BASIC_TOKEN(?,?)`;
+
+		return new Promise((resolve, reject) => {
+			mysql.query(query, [username, password], (err, result) => {
+				if (err) {
+					reject(err);
+				}
+
+				resolve(result);
+			});
+		});
+	}
+
 	// Login
 	Login({ username, password }) {
 		return new Promise((resolve, reject) => {

@@ -30,6 +30,7 @@ const {
 	LOCATION_PARKING_TYPES,
 	DEFAULT_LIST,
 } = require("./defaults");
+const { HttpForbidden } = require("../utils/HttpError");
 
 const CONNECTOR = new GraphQLObjectType({
 	name: "CONNECTOR",
@@ -286,7 +287,9 @@ const RootQuery = new GraphQLObjectType({
 				lng: { type: GraphQLFloat },
 			},
 			resolve: async function (_, args, context) {
-				BasicTokenVerifier(context.auth);
+				const isValid = await BasicTokenVerifier(context.auth);
+
+				if (!isValid) throw new HttpForbidden("Forbidden", []);
 
 				const result = await repository.GetLocations({
 					lat: args.lat,
@@ -303,7 +306,6 @@ const RootQuery = new GraphQLObjectType({
 				lng: { type: GraphQLFloat },
 			},
 			resolve: async function (_, args, context) {
-				// BasicTokenVerifier(context.auth);
 				const verifier = await AccessTokenVerifier(context.auth);
 
 				const result = await repository.GetLocationsWithFavorites(
@@ -333,7 +335,9 @@ const RootQuery = new GraphQLObjectType({
 			resolve: async function (_, args, context) {
 				logger.info({ GRAPHQL_FILTER_LOCATIONS: { args, context } });
 
-				BasicTokenVerifier(context.auth);
+				const isValid = await BasicTokenVerifier(context.auth);
+
+				if (!isValid) throw new HttpForbidden("Forbidden", []);
 
 				let facilities = "";
 				let capabilities = "";
@@ -522,7 +526,9 @@ const RootQuery = new GraphQLObjectType({
 		facilities: {
 			type: new GraphQLList(DEFAULT_LIST),
 			resolve: async function (_, _, context) {
-				BasicTokenVerifier(context.auth);
+				const isValid = await BasicTokenVerifier(context.auth);
+
+				if (!isValid) throw new HttpForbidden("Forbidden", []);
 
 				const result = await filtersRepository.GetFacilities();
 
@@ -532,7 +538,9 @@ const RootQuery = new GraphQLObjectType({
 		capabilities: {
 			type: new GraphQLList(DEFAULT_LIST),
 			resolve: async function (_, _, context) {
-				BasicTokenVerifier(context.auth);
+				const isValid = await BasicTokenVerifier(context.auth);
+
+				if (!isValid) throw new HttpForbidden("Forbidden", []);
 
 				const result = await filtersRepository.GetCapabilities();
 
@@ -542,7 +550,9 @@ const RootQuery = new GraphQLObjectType({
 		payment_types: {
 			type: new GraphQLList(DEFAULT_LIST),
 			resolve: async function (_, _, context) {
-				BasicTokenVerifier(context.auth);
+				const isValid = await BasicTokenVerifier(context.auth);
+
+				if (!isValid) throw new HttpForbidden("Forbidden", []);
 
 				const result = await filtersRepository.GetPaymentTypes();
 
@@ -552,7 +562,9 @@ const RootQuery = new GraphQLObjectType({
 		parking_types: {
 			type: new GraphQLList(DEFAULT_LIST),
 			resolve: async function (_, _, context) {
-				BasicTokenVerifier(context.auth);
+				const isValid = await BasicTokenVerifier(context.auth);
+
+				if (!isValid) throw new HttpForbidden("Forbidden", []);
 
 				const result = await filtersRepository.GetParkingTypes();
 
@@ -562,7 +574,9 @@ const RootQuery = new GraphQLObjectType({
 		parking_restrictions: {
 			type: new GraphQLList(DEFAULT_LIST),
 			resolve: async function (_, _, context) {
-				BasicTokenVerifier(context.auth);
+				const isValid = await BasicTokenVerifier(context.auth);
+
+				if (!isValid) throw new HttpForbidden("Forbidden", []);
 
 				const result = await filtersRepository.GetParkingRestrictions();
 
@@ -572,7 +586,9 @@ const RootQuery = new GraphQLObjectType({
 		connector_types: {
 			type: new GraphQLList(DEFAULT_LIST),
 			resolve: async function (_, _, context) {
-				BasicTokenVerifier(context.auth);
+				const isValid = await BasicTokenVerifier(context.auth);
+
+				if (!isValid) throw new HttpForbidden("Forbidden", []);
 
 				const result = await filtersRepository.GetConnectorTypes();
 
@@ -582,7 +598,9 @@ const RootQuery = new GraphQLObjectType({
 		power_types: {
 			type: new GraphQLList(DEFAULT_LIST),
 			resolve: async function (_, _, context) {
-				BasicTokenVerifier(context.auth);
+				const isValid = await BasicTokenVerifier(context.auth);
+
+				if (!isValid) throw new HttpForbidden("Forbidden", []);
 
 				const result = await filtersRepository.GetPowerTypes();
 

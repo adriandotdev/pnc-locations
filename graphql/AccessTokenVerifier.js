@@ -1,7 +1,7 @@
 const { GraphQLError } = require("graphql");
 const logger = require("../config/winston");
 const Crypto = require("../utils/Crypto");
-const AccountRepository = require("../repository/AuthenticationRepository");
+const AccountRepository = require("../repository/AccountRepository");
 const JsonWebToken = require("../utils/JsonWebToken");
 const jwt = require("jsonwebtoken");
 const {
@@ -10,15 +10,17 @@ const {
 } = require("../utils/HttpError");
 const repository = new AccountRepository();
 
-const AccessTokenVerifier = async (accessToken) => {
+const AccessTokenVerifier = async (auth) => {
 	// logger
 	logger.info({
 		ACCESS_TOKEN_VERIFIER_MIDDLEWARE: {
-			access_token: accessToken,
+			access_token: auth,
 		},
 	});
 
 	try {
+		const accessToken = auth.split(" ")[1];
+
 		if (!accessToken) throw new HttpUnauthorized("Unauthorized", []);
 
 		const decryptedAccessToken = Crypto.Decrypt(accessToken);
