@@ -78,7 +78,7 @@ const logger = createLogger({
 		timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
 		splat(),
 		json({ stable: true }),
-		format.colorize({ all: true }),
+		format.colorize({ all: false }),
 		myFormat
 	),
 	exitOnError: false,
