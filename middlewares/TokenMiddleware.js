@@ -25,15 +25,14 @@ const AccessTokenVerifier = async (req, res, next) => {
 
 		if (!accessToken) throw new HttpUnauthorized("Unauthorized", []);
 
-		const decryptedAccessToken = Crypto.Decrypt(accessToken);
+		const decryptedAccessToken = Crypto.Decrypt(accessToken); // throws Error when token is invalid to decrypt.
 
 		const isAccessTokenExistingInDB = await repository.FindAccessToken(
 			decryptedAccessToken
 		);
 
-		if (isAccessTokenExistingInDB.length < 1) {
+		if (isAccessTokenExistingInDB.length < 1)
 			throw new HttpUnauthorized("Unauthorized", []);
-		}
 
 		JsonWebToken.Verify(
 			decryptedAccessToken,
@@ -41,7 +40,7 @@ const AccessTokenVerifier = async (req, res, next) => {
 			(err, decode) => {
 				if (err) {
 					if (err instanceof jwt.TokenExpiredError) {
-						throw new HttpUnauthorized("Token Expired", []);
+						throw new HttpForbidden("Token Expired", []);
 					} else if (err instanceof jwt.JsonWebTokenError) {
 						throw new HttpUnauthorized("Invalid Token", []);
 					} else {
@@ -60,6 +59,7 @@ const AccessTokenVerifier = async (req, res, next) => {
 				req.username = decode.data.username;
 				req.id = decode.data.id;
 				req.role_id = decode.data.role_id;
+				req.role = decode.data.role;
 				req.access_token = decryptedAccessToken;
 			}
 		);
@@ -78,8 +78,8 @@ const AccessTokenVerifier = async (req, res, next) => {
 		});
 
 		if (err !== null) {
-			return res.status(err.status ? err.status : 500).json({
-				status: err.status ? err.status : 500,
+			return res.status(err.status || 500).json({
+				status: err.status || 500,
 				data: err.data,
 				message: err.message,
 			});
@@ -152,6 +152,7 @@ const RefreshTokenVerifier = async (req, res, next) => {
 				req.username = decode.data.username;
 				req.id = decode.data.id;
 				req.role_id = decode.data.role_id;
+				req.role = decode.data.role;
 				req.refresh_token = decryptedRefreshToken;
 			}
 		);
