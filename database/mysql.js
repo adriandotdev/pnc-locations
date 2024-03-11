@@ -1,4 +1,3 @@
-require("dotenv").config();
 var mysql = require("mysql2");
 const logger = require("../config/winston");
 

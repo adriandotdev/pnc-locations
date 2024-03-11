@@ -5,9 +5,6 @@ const MerchantsRepository = require("../repository/MerchantsRepository");
 // Misc
 const axios = require("axios");
 
-// Configuration File.
-const config = require("../config/config");
-
 // Utilities
 const { HttpNotFound } = require("../utils/HttpError");
 

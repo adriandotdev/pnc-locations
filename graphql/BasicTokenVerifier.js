@@ -1,4 +1,3 @@
-require("dotenv").config();
 const { GraphQLError } = require("graphql");
 
 const logger = require("../config/winston");
