@@ -293,7 +293,11 @@ module.exports = class LocationsRepository {
 		}
 
 		WHERE ${facilities === "" ? 1 : `facilities.code IN (${facilities})`}
-		AND ${parking_types === "" ? 1 : `parking_types.code IN (${parking_types})`}
+		AND ${
+			parking_types === ""
+				? 1
+				: `cpo_location_parking_types.tag IN (${parking_types})`
+		}
 		AND ${
 			parking_restrictions === ""
 				? 1
@@ -425,7 +429,11 @@ module.exports = class LocationsRepository {
 		}
 
 		WHERE ${facilities === "" ? 1 : `facilities.code IN (${facilities})`}
-		AND ${parking_types === "" ? 1 : `parking_types.code IN (${parking_types})`}
+		AND ${
+			parking_types === ""
+				? 1
+				: `cpo_location_parking_types.tag IN (${parking_types})`
+		}
 		AND ${
 			parking_restrictions === ""
 				? 1
