@@ -87,6 +87,30 @@ module.exports = class LocationsRepository {
 		});
 	}
 
+	GetLocation(location) {
+		const QUERY = `
+			SELECT
+			*,
+			(SELECT (6371 * 2 * ASIN(SQRT(
+				POWER(SIN((${location.lat} - ABS(address_lat)) * PI() / 180 / 2), 2) +
+				COS(${location.lat} * PI() / 180) * COS(ABS(address_lat) * PI() / 180) *
+				POWER(SIN((${location.lng} - address_lng) * PI() / 180 / 2), 2)
+			)) ) AS distance) AS distance
+		FROM
+			cpo_locations
+		WHERE cpo_locations.id = ?
+		`;
+
+		return new Promise((resolve, reject) => {
+			mysql.query(QUERY, [location.id], (err, result) => {
+				if (err) {
+					reject(err);
+				}
+				resolve(result[0]);
+			});
+		});
+	}
+
 	GetLocationFacilities(locationID) {
 		const query = `
 		SELECT *

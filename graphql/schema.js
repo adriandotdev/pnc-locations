@@ -283,6 +283,27 @@ const RootQuery = new GraphQLObjectType({
 				return result;
 			},
 		},
+		location: {
+			type: LOCATIONS,
+			args: {
+				id: { type: GraphQLInt },
+				lat: { type: GraphQLFloat },
+				lng: { type: GraphQLFloat },
+			},
+			resolve: async function (_, args, context) {
+				const isValid = await BasicTokenVerifier(context.auth);
+
+				if (!isValid) throw new HttpForbidden("Forbidden", []);
+
+				const result = await repository.GetLocation({
+					id: args.id,
+					lat: args.lat,
+					lng: args.lng,
+				});
+
+				return result;
+			},
+		},
 		locations: {
 			type: new GraphQLList(LOCATIONS),
 			args: {
