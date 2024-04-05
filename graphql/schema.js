@@ -304,6 +304,33 @@ const RootQuery = new GraphQLObjectType({
 				return result;
 			},
 		},
+		location_with_favorite: {
+			type: LOCATIONS_WITH_FAVORITES,
+			args: {
+				id: { type: GraphQLInt },
+
+				lat: { type: GraphQLFloat },
+				lng: { type: GraphQLFloat },
+			},
+			resolve: async function (_, args, context) {
+				const verifier = await AccessTokenVerifier(context.auth);
+
+				if (!verifier) throw new HttpForbidden("Forbidden", []);
+
+				console.log(verifier);
+				const result = await repository.GetLocationWithFavorite(
+					{
+						id: args.id,
+						lat: args.lat,
+						lng: args.lng,
+					},
+					verifier.id
+				);
+
+				return result;
+			},
+		},
+
 		locations: {
 			type: new GraphQLList(LOCATIONS),
 			args: {
