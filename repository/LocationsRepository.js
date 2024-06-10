@@ -74,6 +74,8 @@ module.exports = class LocationsRepository {
                     )) ) AS distance) AS distance
                 FROM
                     cpo_locations
+				WHERE 
+					cpo_owner_id IS NOT NULL
                 `;
 
 		return new Promise((resolve, reject) => {
@@ -208,7 +210,8 @@ module.exports = class LocationsRepository {
                     
 				(CASE WHEN EXISTS (SELECT 1 FROM favorite_merchants WHERE cpo_location_id = cpo_locations.id AND user_id = ${user_id})
 					THEN 'true' ELSE 'false' END) AS favorite
-        FROM cpo_locations`;
+        FROM cpo_locations
+		WHERE cpo_owner_id IS NOT NULL`;
 
 		return new Promise((resolve, reject) => {
 			mysql.query(query, (err, result) => {
@@ -282,6 +285,7 @@ module.exports = class LocationsRepository {
 				LEFT JOIN evse_connector_power_types ON evse_connector_power_types.connector_id = evse_connectors.connector_id
 				LEFT JOIN power_types ON evse_connector_power_types.power_type_id = power_types.id
 			WHERE 
+				cpo_locations.cpo_owner_id IS NOT NULL AND
 				${facilities === "" ? `1 = 1` : `facilities.code IN (${facilities})`} AND
 				${
 					payment_types === ""
@@ -365,6 +369,7 @@ module.exports = class LocationsRepository {
 			LEFT JOIN evse_connector_power_types ON evse_connector_power_types.connector_id = evse_connectors.connector_id
 			LEFT JOIN power_types ON evse_connector_power_types.power_type_id = power_types.id
 		WHERE 
+			cpo_locations.cpo_owner_id IS NOT NULL AND
 			${facilities === "" ? `1 = 1` : `facilities.code IN (${facilities})`} AND
 			${
 				payment_types === ""

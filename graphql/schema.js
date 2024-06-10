@@ -95,6 +95,7 @@ const LOCATIONS = new GraphQLObjectType({
 	name: "LOCATIONS",
 	fields: () => ({
 		id: { type: GraphQLInt },
+		cpo_owner_id: { type: GraphQLInt },
 		publish: { type: GraphQLBoolean },
 		name: { type: GraphQLString },
 		address: { type: GraphQLString },
@@ -171,6 +172,7 @@ const LOCATIONS_WITH_FAVORITES = new GraphQLObjectType({
 	name: "LOCATION_WITH_FAVORITES",
 	fields: () => ({
 		id: { type: GraphQLInt },
+		cpo_owner_id: { type: GraphQLInt },
 		publish: { type: GraphQLBoolean },
 		name: { type: GraphQLString },
 		address: { type: GraphQLString },
@@ -222,6 +224,7 @@ const FAVORITE_LOCATIONS = new GraphQLObjectType({
 	name: "FAVORITE_LOCATIONS",
 	fields: () => ({
 		id: { type: GraphQLInt },
+		cpo_owner_id: { type: GraphQLInt },
 		publish: { type: GraphQLBoolean },
 		name: { type: GraphQLString },
 		address: { type: GraphQLString },
