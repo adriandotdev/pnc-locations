@@ -17,8 +17,19 @@ const app = express();
 const morgan = require("morgan");
 const winston = require("./config/winston");
 const { graphqlHTTP } = require("express-graphql");
-
+const { createYoga } = require("graphql-yoga");
 const schema = require("./graphql/schema");
+const compression = require("compression");
+
+const shouldCompress = (req, res) => {
+	if (req.headers["x-no-compression"]) {
+		// don't compress responses if this request header is present
+		return false;
+	}
+
+	// fallback to standard compression
+	return compression.filter(req, res);
+};
 
 // Global Middlewares
 app.use(helmet());
@@ -37,9 +48,26 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(morgan("combined", { stream: winston.stream }));
 app.use(cookieParser());
+app.use(compression({ filter: shouldCompress, threshold: 0 }));
 
 require("./api/merchants.api")(app);
 require("./api/favorite_merchants.api")(app);
+
+const yoga = createYoga({
+	schema,
+	context: (req) => ({
+		auth: req.request.headers.get("authorization"),
+	}),
+	graphiql: true,
+	customFormatErrorFn: (error) => {
+		return {
+			message: error.originalError.message
+				? error.originalError.message
+				: "Internal Server Error",
+			status: error.originalError.status ? error.originalError.status : 500,
+		};
+	},
+});
 
 app.use(
 	"/booking_merchants/graphql",
