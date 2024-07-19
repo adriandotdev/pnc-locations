@@ -17,7 +17,6 @@ const app = express();
 const morgan = require("morgan");
 const winston = require("./config/winston");
 const { graphqlHTTP } = require("express-graphql");
-const { createYoga } = require("graphql-yoga");
 const schema = require("./graphql/schema");
 const compression = require("compression");
 
@@ -52,22 +51,6 @@ app.use(compression({ filter: shouldCompress, threshold: 0 }));
 
 require("./api/merchants.api")(app);
 require("./api/favorite_merchants.api")(app);
-
-const yoga = createYoga({
-	schema,
-	context: (req) => ({
-		auth: req.request.headers.get("authorization"),
-	}),
-	graphiql: true,
-	customFormatErrorFn: (error) => {
-		return {
-			message: error.originalError.message
-				? error.originalError.message
-				: "Internal Server Error",
-			status: error.originalError.status ? error.originalError.status : 500,
-		};
-	},
-});
 
 app.use(
 	"/booking_merchants/graphql",
